@@ -10,7 +10,6 @@ use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
 use Async\Processor\ProcessInterface;
 use Symfony\Component\Process\Process;
-use function Opis\Closure\unserialize;
 
 /**
  * Launcher runs a command/script/application/callable in an independent process.
