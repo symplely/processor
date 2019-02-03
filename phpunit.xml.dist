@@ -11,7 +11,7 @@
          stopOnFailure="false">
 	
     <testsuites>
-        <testsuite name="Process Test Suite">
+        <testsuite name="Processor Test Suite">
             <directory suffix=".php">tests/</directory>
         </testsuite>
     </testsuites>
