@@ -3,16 +3,11 @@
 namespace Async\Tests;
 
 use InvalidArgumentException;
-use Async\Parallel\Parallel;
+use Async\Processor\Processor;
 use PHPUnit\Framework\TestCase;
 
-class ParallelTest extends TestCase
-{
-    protected function setUp()
-    {
-        parent::setUp();
-    }
-	
+class ProcessorTest extends TestCase
+{	
     /** @test */
     public function it_can_handle_success()
     {
