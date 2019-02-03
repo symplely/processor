@@ -1,0 +1,39 @@
+{
+    "name": "uppes/process",
+    "description": "An Process control API for asynchronous PHP programming.",
+    "keywords": [
+        "sub process",
+        "async"
+    ],
+    "homepage": "https://github.com/uppes/process",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lawrence Stubbs",
+            "email": "lstubbs@techno.express"
+        }
+    ],
+    "require": {
+        "php": ">7.1",
+        "uppes/eventloop": "*",
+        "opis/closure": "^3.0",
+        "symfony/process": "^4.2"
+    },
+    "autoload": {
+        "psr-4": { 
+			"Async\\Processor\\": "Processor/"
+		}
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">5.7"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Async\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --bootstrap vendor/autoload.php tests"
+    }
+}
