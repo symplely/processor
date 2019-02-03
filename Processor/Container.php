@@ -1,6 +1,5 @@
 <?php
 
-use function Opis\Closure\serialize;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
