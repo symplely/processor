@@ -16,7 +16,7 @@
     ],
     "require": {
         "php": ">7.1",
-        "uppes/eventloop": "*",
+        "uppes/eventloop": "^1.0.8",
         "opis/closure": "^3.0",
         "symfony/process": "^4.2"
     },
@@ -34,6 +34,6 @@
         }
     },
     "scripts": {
-        "test": "phpunit --bootstrap vendor/autoload.php tests"
+        "test": "vendor/bin/phpunit --bootstrap vendor/autoload.php tests"
     }
 }
