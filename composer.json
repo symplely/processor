@@ -1,11 +1,11 @@
 {
-    "name": "uppes/process",
+    "name": "uppes/processor",
     "description": "An Process control API for asynchronous PHP programming.",
     "keywords": [
         "sub process",
         "async"
     ],
-    "homepage": "https://github.com/uppes/process",
+    "homepage": "https://github.com/uppes/processor",
     "type": "library",
     "license": "MIT",
     "authors": [

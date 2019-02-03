@@ -18,7 +18,6 @@ class ErrorHandlingTest extends TestCase
             })->catch(function (ProcessorError $e) {
                 $this->assertRegExp('/test/', $e->getMessage());
             });
-        }
 
         $process->wait();
         $this->assertTrue($process->isTerminated());
