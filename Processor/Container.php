@@ -26,12 +26,12 @@ try {
 
     $output = \call_user_func($task);
 
-    $serializedOutput = \base64_encode(serialize($output));
+    $serializedOutput = \base64_encode(\serialize($output));
 
     $outputLength = 1024 * 10;
 
     if (strlen($serializedOutput) > $outputLength) {
-        throw ParallelError::outputTooLarge($outputLength);
+        throw ProcessorError::outputTooLarge($outputLength);
     }
 
     \fwrite(STDOUT, $serializedOutput);
@@ -44,7 +44,7 @@ try {
 
     $output = new SerializableException($exception);
 
-    \fwrite(STDERR, \base64_encode(serialize($output)));
+    \fwrite(STDERR, \base64_encode(\serialize($output)));
 
     exit(1);
 }

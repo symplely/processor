@@ -4,8 +4,8 @@ namespace Async\Processor;
 
 use Closure;
 use Async\Processor\Launcher;
+use Async\Processor\Process;
 use Async\Processor\ProcessInterface;
-use Symfony\Component\Process\Process;
 use Opis\Closure\SerializableClosure;
 use function Opis\Closure\serialize;
 use function Opis\Closure\unserialize;

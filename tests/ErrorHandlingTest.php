@@ -22,42 +22,16 @@ class ErrorHandlingTest extends TestCase
         $process->wait();
         $this->assertTrue($process->isTerminated());
     }
-
-    /** @test */
-    public function it_throws_the_exception_if_no_catch_callback()
-    {
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessageRegExp('/test/');
-
-        $process = Processor::create(function () {
-            throw new \Exception('test');
-        });
-
-        $process->wait();
-    }
-
-    /** @test */
-    public function it_throws_fatal_errors()
-    {
-        $this->expectException(Error::class);
-        $this->expectExceptionMessageRegExp('/test/');
-
-        $process = Processor::create(function () {
-            throw new Error('test');
-        });
-
-        $process->wait();
-    }
-
+ 
     /** @test */
     public function it_handles_stderr_as_processor_error()
     {
         $process = Processor::create(function () {
             fwrite(STDERR, 'test');
         })->catch(function (ProcessorError $error) {
-            $this->assertContains('test', $error->getMessage());
+            $this->assertContains('test2', $error->getMessage());
         });
 
-        $parallel->wait();
+        $process->wait();
     }
 }

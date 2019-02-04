@@ -6,10 +6,10 @@
 namespace Async\Processor;
 
 use Throwable;
+use Async\Processor\Process;
 use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
 use Async\Processor\ProcessInterface;
-use Symfony\Component\Process\Process;
 
 /**
  * Launcher runs a command/script/application/callable in an independent process.
@@ -53,7 +53,7 @@ class Launcher implements ProcessInterface
         return $this;
     }
 	
-    public function restart(): self
+    public function restart()
     {
         $this->startTime = \microtime(true);
 
@@ -66,20 +66,25 @@ class Launcher implements ProcessInterface
 	
     public function wait()
     {
-        $this->process->run();
-		
-		if ($this->isTimedOut()) {
-			$this->triggerTimeout();
-		} elseif ($this->isSuccessful()) {
-			return $this->triggerSuccess();
-		} elseif ($this->isTerminated()) {
-			$this->triggerError();
-		}
+        try {
+            $this->process->run();     
+            if ($this->isSuccessful()) {       
+                return $this->triggerSuccess();
+		    }
+        } catch (\Throwable $e) {            
+        } catch (\Exception $e) {            
+        }
+
+        if ($this->isTimedOut()) {
+            $this->triggerTimeout();
+        } elseif ($this->isTerminated()) {
+            $this->triggerError();
+        } 
     }
 
     public function stop(): self
     {
-        $this->process->stop(10, SIGKILL);
+        $this->process->stop(10);
 
         return $this;
     }
