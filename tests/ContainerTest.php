@@ -2,9 +2,8 @@
 
 namespace Async\Tests;
 
-use function Opis\Closure\serialize;
 use Opis\Closure\SerializableClosure;
-use Symfony\Component\Process\Process;
+use Async\Processor\Process;
 use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
@@ -18,7 +17,7 @@ class ContainerTest extends TestCase
 
         $autoload = __DIR__._DS.'..'._DS.'vendor'._DS.'autoload.php';
 
-        $serializedClosure = \base64_encode(serialize(new SerializableClosure(function () {
+        $serializedClosure = \base64_encode(\Opis\Closure\serialize(new SerializableClosure(function () {
             echo 'child';
         })));
         $process = new Process("php {$bootstrap} {$autoload} {$serializedClosure}");

@@ -19,7 +19,7 @@ class ErrorHandlingTest extends TestCase
                 $this->assertRegExp('/test/', $e->getMessage());
             });
 
-        $process->wait();
+        $process->run();
         $this->assertTrue($process->isTerminated());
     }
  
@@ -29,9 +29,10 @@ class ErrorHandlingTest extends TestCase
         $process = Processor::create(function () {
             fwrite(STDERR, 'test');
         })->catch(function (ProcessorError $error) {
-            $this->assertContains('test2', $error->getMessage());
+            $this->assertContains('test', $error->getMessage());
         });
 
-        $process->wait();
+        $process->run();
+        $this->assertTrue($process->isSuccessful());
     }
 }

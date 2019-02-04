@@ -19,7 +19,7 @@ class ProcessorTest extends TestCase
             $counter = $output;
         });
 	
-        $process->wait();
+        $process->run();
         $this->assertTrue($process->isSuccessful());
 
         $this->assertEquals(2, $counter);
@@ -36,7 +36,7 @@ class ProcessorTest extends TestCase
             $counter += 1;
         });
 
-        $process->wait();
+        $process->run();
         $this->assertTrue($process->isTimedOut());
 
         $this->assertEquals(1, $counter);
@@ -52,7 +52,7 @@ class ProcessorTest extends TestCase
         $process->start();
         $this->assertTrue($process->isRunning());
         $this->assertFalse($process->isTerminated());
-        $process->wait();
+        $process->run();
         $this->assertFalse($process->isRunning());
         $this->assertTrue($process->isTerminated());
     }
@@ -61,12 +61,12 @@ class ProcessorTest extends TestCase
     {
         if ('\\' === \DIRECTORY_SEPARATOR) {
             // see http://stackoverflow.com/questions/7105433/windows-batch-echo-without-new-line
-            $p = Processor::make('echo | set /p dummyName=0');
+            $p = Processor::create('echo | set /p dummyName=0');
         } else {
-            $p = Processor::make('printf 0');
+            $p = Processor::create('printf 0');
         }
 
-        $p->wait();
+        $p->run();
         $this->assertSame('0', $p->getOutput());
     }
 
@@ -75,12 +75,13 @@ class ProcessorTest extends TestCase
         $p = Processor::create(function () {
 			$n = 0; 
 			while ($n < 3) { 
-				echo " foo "; 
+				echo "foo"; 
 				$n++; 
 			}
 		});
 
-        $p->wait();
+        $p->run();
+        echo $p->getOutput();
         $this->assertEquals(3, preg_match_all('/foo/', $p->getOutput(), $matches));
     }
 
@@ -94,7 +95,7 @@ class ProcessorTest extends TestCase
 			}
 		});
 
-        $p->wait();
+        $p->run();
         $this->assertEquals(3, preg_match_all('/ERROR/', $p->getErrorOutput(), $matches));
     }
 
@@ -103,10 +104,10 @@ class ProcessorTest extends TestCase
         $process1 = Processor::create(function () {
 			echo getmypid();
 		});
-        $process1->wait();
+        $process1->run();
         $process2 = $process1->restart();
 
-        $process2->wait(); // wait for output
+        $process2->run(); // wait for output
 
         // Ensure that both processed finished and the output is numeric
         $this->assertFalse($process1->isRunning());
@@ -120,8 +121,8 @@ class ProcessorTest extends TestCase
 	
     public function testWaitReturnAfterRunCMD()
     {
-        $process = Processor::make('echo foo');
-        $result = $process->wait();
+        $process = Processor::create('echo foo');
+        $result = $process->run();
         $this->assertEquals('foo', $result);
     }
 
@@ -137,8 +138,8 @@ class ProcessorTest extends TestCase
 
     public function testIsSuccessfulCMD()
     {
-        $process = Processor::make('echo foo');
-        $process->wait();
+        $process = Processor::create('echo foo');
+        $process->run();
         $this->assertTrue($process->isSuccessful());
     }
 	

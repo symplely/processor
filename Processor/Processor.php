@@ -7,8 +7,6 @@ use Async\Processor\Launcher;
 use Async\Processor\Process;
 use Async\Processor\ProcessInterface;
 use Opis\Closure\SerializableClosure;
-use function Opis\Closure\serialize;
-use function Opis\Closure\unserialize;
 
 class Processor
 {
@@ -35,7 +33,7 @@ class Processor
             if (!defined('_DS'))
                 define('_DS', DIRECTORY_SEPARATOR);
 
-            $existingAutoloadFiles = array_filter([
+            $existingAutoloadFiles = \array_filter([
                 __DIR__._DS.'..'._DS.'..'._DS.'..'._DS.'..'._DS.'autoload.php',
                 __DIR__._DS.'..'._DS.'..'._DS.'..'._DS.'autoload.php',
                 __DIR__._DS.'..'._DS.'..'._DS.'vendor'._DS.'autoload.php',
@@ -56,45 +54,33 @@ class Processor
     }
 
     /**
-     * Create a PHP sub process for callable.
+     * Create a sub process for callable, cmd script, or any binary application.
      *
      * @param callable $task
      *
      * @return ProcessInterface
      */
-    public static function create(callable $task, int $timeout = 300): ProcessInterface
+    public static function create($task, int $timeout = 300): ProcessInterface
     {
-        if (! self::$isInitialized) {
-            self::init();
-        } 
-		
-        $process = new Process(\implode(' ', [
-            'php',
-            self::$containerScript,
-            self::$autoload,
-            self::encodeTask($task),
-        ]), null, null, null, $timeout);
-
-        return Launcher::create($process, self::getId(), $timeout);
-	}
-
-    /**
-     * Make a process for an command/application.
-     *
-     * @param string $task
-     *
-     * @return ProcessInterface
-     */
-    public static function make($task, int $timeout = 300): ProcessInterface
-    {
-        if (\is_string($task)) {
+        if (\is_callable($task)) {
+            if (! self::$isInitialized) {
+                self::init();
+            } 
+            
+            $process = new Process(\implode(' ', [
+                'php',
+                self::$containerScript,
+                self::$autoload,
+                self::encodeTask($task),
+            ]), null, null, null, $timeout);
+        } elseif (\is_string($task)) {
             $process = Process::fromShellCommandline($task, null, null, null, $timeout);
         } else {
             $process = new Process($task, null, null, null, $timeout);
         }
-		
+
         return Launcher::create($process, self::getId(), $timeout);
-    }
+	}
 	
     /**
      * Daemon a process to run in the background.
@@ -112,7 +98,7 @@ class Processor
 			$shadow[] = $task;
         }
 				
-        return Launcher::make($shadow, 0);
+        return Processor::create($shadow, 0);
     }
 	
     /**
@@ -126,12 +112,12 @@ class Processor
             $task = new SerializableClosure($task);
         }
 
-        return \base64_encode(serialize($task));
+        return \base64_encode(\Opis\Closure\serialize($task));
     }
 
     public static function decodeTask(string $task)
     {
-        return unserialize(\base64_decode($task));
+        return \Opis\Closure\unserialize(\base64_decode($task));
     }
 
     protected static function getId(): string

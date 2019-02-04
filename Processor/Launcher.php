@@ -63,23 +63,51 @@ class Launcher implements ProcessInterface
 
         return $this;
     }
-	
-    public function wait()
+
+    public function run()
     {
+        $isErred = false;
         try {
             $this->process->run();     
             if ($this->isSuccessful()) {       
                 return $this->triggerSuccess();
 		    }
-        } catch (\Throwable $e) {            
-        } catch (\Exception $e) {            
+        } catch (\Throwable $e) {   
+            $isErred = true;
+        } catch (\Exception $e) {   
+            $isErred = true;
         }
 
         if ($this->isTimedOut()) {
             $this->triggerTimeout();
-        } elseif ($this->isTerminated()) {
+        } elseif (! $this->isRunning() && $this->isTerminated()) {
             $this->triggerError();
-        } 
+        } elseif ($isErred) {
+            $this->process->stop(0);
+        }
+    }
+
+    public function wait()
+    {
+        $isErred = false;
+        try {
+            $this->process->wait();     
+            if ($this->isSuccessful()) {       
+                return $this->triggerSuccess();
+		    }
+        } catch (\Throwable $e) {   
+            $isErred = true;
+        } catch (\Exception $e) {   
+            $isErred = true;
+        }
+
+        if ($this->isTimedOut()) {
+            $this->triggerTimeout();
+        } elseif (! $this->isRunning() && $this->isTerminated()) {
+            $this->triggerError();
+        } elseif ($isErred) {
+            $this->process->stop(0);
+        }
     }
 
     public function stop(): self
@@ -117,7 +145,7 @@ class Launcher implements ProcessInterface
         if (! $this->output) {
             $processOutput = $this->process->getOutput();
 
-            $this->output = @unserialize(\base64_decode($processOutput));
+            $this->output = @\unserialize(\base64_decode($processOutput));
 
             if (! $this->output) {
                 $this->errorOutput = $processOutput;
@@ -132,7 +160,7 @@ class Launcher implements ProcessInterface
         if (! $this->errorOutput) {
             $processOutput = $this->process->getErrorOutput();
 
-            $this->errorOutput = @unserialize(\base64_decode($processOutput));
+            $this->errorOutput = @\unserialize(\base64_decode($processOutput));
 
             if (! $this->errorOutput) {
                 $this->errorOutput = $processOutput;
