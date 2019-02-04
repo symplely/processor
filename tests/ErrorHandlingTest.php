@@ -29,10 +29,66 @@ class ErrorHandlingTest extends TestCase
         $process = Processor::create(function () {
             fwrite(STDERR, 'test');
         })->catch(function (ProcessorError $error) {
-            $this->assertContains('test', $error->getMessage());
+            $this->assertStringContainsString('test', $error->getMessage());
         });
 
         $process->run();
         $this->assertTrue($process->isSuccessful());
+    }
+
+    /** @test */
+    public function it_throws_the_exception_if_no_catch_callback()
+    {
+        //$this->expectException(\Exception::class);
+        //$this->expectExceptionMessageRegExp('/test/');
+
+        $process = Processor::create(function () {
+            throw new MyException('test');
+        });
+
+        $process->run();
+    }
+
+    /** @test */
+    public function it_throws_fatal_errors()
+    {
+        //$this->expectException(\Error::class);
+        //$this->expectExceptionMessageRegExp('/test/');
+
+        $process = Processor::create(function () {
+            throw new Error('test');
+        });
+
+        $process->run();
+    }
+
+    /** @test */
+    public function it_keeps_the_original_trace()
+    {
+        $parallel = new Parallel();
+
+        $parallel->add(function () {
+            $myClass = new MyClass();
+
+            $myClass->throwException();
+        })->catch(function (ParallelError $exception) {
+            $this->assertStringContainsString('Async\Tests\MyClass->throwException()', $exception->getMessage());
+        });
+
+        $parallel->wait();
+    }
+
+    /** @test */
+    public function it_handles_stderr_as_parallel_error()
+    {
+        $parallel = new Parallel();
+
+        $parallel->add(function () {
+            fwrite(STDERR, 'test');
+        })->catch(function (ParallelError $error) {
+            $this->assertStringContainsString('test', $error->getMessage());
+        });
+
+        $parallel->wait();
     }
 }
