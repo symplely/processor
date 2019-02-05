@@ -4,6 +4,7 @@ namespace Async\Tests;
 
 use InvalidArgumentException;
 use Async\Processor\Processor;
+use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
 
 class ProcessorTest extends TestCase
@@ -61,13 +62,13 @@ class ProcessorTest extends TestCase
     {
         if ('\\' === \DIRECTORY_SEPARATOR) {
             // see http://stackoverflow.com/questions/7105433/windows-batch-echo-without-new-line
-            $p = Processor::create('echo | set /p dummyName=0');
+            $p = Processor::create('echo | set /p dummyName=1');
         } else {
-            $p = Processor::create('printf 0');
+            $p = Processor::create('printf 1');
         }
 
         $p->run();
-        $this->assertSame('0', $p->getOutput());
+        $this->assertSame('1', $p->getErrorOutput());
     }
 
     public function testGetOutput()
@@ -78,10 +79,11 @@ class ProcessorTest extends TestCase
 				echo "foo"; 
 				$n++; 
 			}
-		});
+		})->then(function ($output) use (&$p) {
+            $this->assertEquals(3, preg_match_all('/foo/', $p->getErrorOutput(), $matches));
+        });
 
         $p->run();
-        $this->assertEquals(3, preg_match_all('/foo/', $p->getOutput(), $matches));
     }
 
     public function testGetErrorOutput()
@@ -92,20 +94,20 @@ class ProcessorTest extends TestCase
 				file_put_contents('php://stderr', 'ERROR'); 
 				$n++; 
 			}
-		});
+		})->catch(function (ProcessorError $error) {
+            $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
+        });
 
         $p->run();
-        $this->assertEquals(3, preg_match_all('/ERROR/', $p->getErrorOutput(), $matches));
     }
 
     public function testRestart()
     {
         $process1 = Processor::create(function () {
-			echo getmypid();
+			return getmypid();
 		});
         $process1->run();
         $process2 = $process1->restart();
-        echo $process1->getOutput();
 
         $process2->wait(); // wait for output
 
@@ -121,7 +123,7 @@ class ProcessorTest extends TestCase
     {
         $process = Processor::create('echo foo');
         $process->run();
-        $this->assertEquals('foo', $process->getOutput());
+        $this->assertStringContainsString('foo', $process->getErrorOutput());
     }
 
     public function testStop()

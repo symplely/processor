@@ -24,7 +24,7 @@ try {
 
     $task = Processor::decodeTask($serializedClosure);
 
-    $output = \call_user_func($task);
+    $output = $task();
 
     $serializedOutput = \base64_encode(\serialize($output));
 
@@ -34,7 +34,7 @@ try {
         throw ProcessorError::outputTooLarge($outputLength);
     }
 
-    \fwrite(STDOUT, $serializedOutput);
+    \fwrite(\STDOUT, $serializedOutput);
 
     exit(0);
 } catch (\Throwable $exception) {
@@ -44,7 +44,7 @@ try {
 
     $output = new SerializableException($exception);
 
-    \fwrite(STDERR, \base64_encode(\serialize($output)));
+    \fwrite(\STDERR, \base64_encode(\serialize($output)));
 
     exit(1);
 }

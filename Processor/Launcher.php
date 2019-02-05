@@ -53,24 +53,25 @@ class Launcher implements ProcessInterface
         return $this;
     }
 	
-    public function restart()
+    public function restart(): self
     {
-        $this->startTime = \microtime(true);
+        if ($this->isRunning())
+            $this->stop();
 
-        $this->process = $this->process->restart();
+        $process = clone $this->process;
 
-        $this->pid = $this->process->getPid();
+        $launcher = $this->create($process, $this->id, $this->timeout);
 
-        return $this;
+        return $launcher->start();
     }
 
     public function run()
     {
         try {
-            $this->start();     
+            $this->start();
             $this->process->wait();
-        } catch (\Throwable $e) {
-        } catch (\Exception $e) {
+        } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            return $this->triggerTimeout();
         }
 
         return $this->checkProcess();
@@ -83,13 +84,13 @@ class Launcher implements ProcessInterface
 
     protected function checkProcess()
     {
-        if ($this->isSuccessful()) {       
+        if ($this->isSuccessful()) {
             return $this->triggerSuccess();
         } elseif ($this->isTimedOut()) {
             return $this->triggerTimeout();
+        } elseif ($this->isTerminated()) {         
+            return $this->triggerError();
         } 
-         
-        return $this->triggerError();
     }
 
     public function stop(): self
