@@ -62,7 +62,7 @@ class Processor
      */
     public static function create($task, int $timeout = 300): ProcessInterface
     {
-        if (\is_callable($task) && !\is_string($task)) {
+        if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {
             if (! self::$isInitialized) {
                 self::init();
             } 

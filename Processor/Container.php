@@ -12,7 +12,7 @@ try {
         throw new \InvalidArgumentException('No autoload provided in child process.');
     }
 
-    if (! file_exists($autoload)) {
+    if (! \file_exists($autoload)) {
         throw new \InvalidArgumentException("Could not find autoload in child process: {$autoload}");
     }
 
@@ -30,7 +30,7 @@ try {
 
     $outputLength = 1024 * 10;
 
-    if (strlen($serializedOutput) > $outputLength) {
+    if (\strlen($serializedOutput) > $outputLength) {
         throw ProcessorError::outputTooLarge($outputLength);
     }
 

@@ -13,10 +13,9 @@ class ErrorHandlingTest extends TestCase
     /** @test */
     public function it_can_handle_exceptions_via_catch_callback()
     {
-        $error = null;
         $process = Processor::create(function () {
                 throw new \Exception('test');
-            })->catch(function (\Exception $e) use (&$error) {
+            })->catch(function (\Exception $e) {
                 $this->assertRegExp('/test/', $e->getMessage());
             });
 
@@ -31,7 +30,7 @@ class ErrorHandlingTest extends TestCase
         $process = Processor::create(function () {
             fwrite(STDERR, 'test');
         })->catch(function (ProcessorError $error) {
-            $this->assertStringContainsString('test', $error->getMessage());
+           $this->assertStringContainsString('test', $error->getMessage());
         });
 
         $process->run();

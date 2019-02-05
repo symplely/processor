@@ -79,11 +79,10 @@ class ProcessorTest extends TestCase
 				echo "foo"; 
 				$n++; 
 			}
-		})->then(function ($output) use (&$p) {
-            $this->assertEquals(3, preg_match_all('/foo/', $p->getErrorOutput(), $matches));
-        });
+		});
 
         $p->run();
+        $this->assertEquals(3, preg_match_all('/foo/', $p->getErrorOutput(), $matches));
     }
 
     public function testGetErrorOutput()

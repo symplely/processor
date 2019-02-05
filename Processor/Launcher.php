@@ -67,11 +67,12 @@ class Launcher implements ProcessInterface
 
     public function run()
     {
-        try {
-            $this->start();
-            $this->process->wait();
-        } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
-            return $this->triggerTimeout();
+        $this->start();
+        while ($this->isRunning()) {
+            if ($this->isTimedOut()) {
+                $this->stop();
+                return $this->triggerTimeout();
+            }
         }
 
         return $this->checkProcess();
@@ -86,11 +87,9 @@ class Launcher implements ProcessInterface
     {
         if ($this->isSuccessful()) {
             return $this->triggerSuccess();
-        } elseif ($this->isTimedOut()) {
-            return $this->triggerTimeout();
-        } elseif ($this->isTerminated()) {         
-            return $this->triggerError();
         } 
+
+        return $this->triggerError();
     }
 
     public function stop(): self
@@ -191,7 +190,7 @@ class Launcher implements ProcessInterface
 
     public function triggerSuccess()
     {
-       if ($this->getErrorOutput()) {
+        if ($this->getErrorOutput()) {
             return $this->triggerError();
         }
 
