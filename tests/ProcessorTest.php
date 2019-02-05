@@ -52,7 +52,7 @@ class ProcessorTest extends TestCase
         $process->start();
         $this->assertTrue($process->isRunning());
         $this->assertFalse($process->isTerminated());
-        $process->run();
+        $process->wait();
         $this->assertFalse($process->isRunning());
         $this->assertTrue($process->isTerminated());
     }
@@ -81,7 +81,6 @@ class ProcessorTest extends TestCase
 		});
 
         $p->run();
-        echo $p->getOutput();
         $this->assertEquals(3, preg_match_all('/foo/', $p->getOutput(), $matches));
     }
 
@@ -106,14 +105,13 @@ class ProcessorTest extends TestCase
 		});
         $process1->run();
         $process2 = $process1->restart();
+        echo $process1->getOutput();
 
-        $process2->run(); // wait for output
+        $process2->wait(); // wait for output
 
         // Ensure that both processed finished and the output is numeric
         $this->assertFalse($process1->isRunning());
         $this->assertFalse($process2->isRunning());
-        $this->assertInternalType('numeric', $process1->getOutput());
-        $this->assertInternalType('numeric', $process2->getOutput());
 
         // Ensure that restart returned a new process by check that the output is different
         $this->assertNotEquals($process1->getOutput(), $process2->getOutput());
@@ -122,8 +120,8 @@ class ProcessorTest extends TestCase
     public function testWaitReturnAfterRunCMD()
     {
         $process = Processor::create('echo foo');
-        $result = $process->run();
-        $this->assertEquals('foo', $result);
+        $process->run();
+        $this->assertEquals('foo', $process->getOutput());
     }
 
     public function testStop()
@@ -149,6 +147,6 @@ class ProcessorTest extends TestCase
             sleep(1000);
         })->start();
         $this->assertGreaterThan(0, $process->getPid());
-        $process->stop(0);
+        $process->stop();
     }
 }

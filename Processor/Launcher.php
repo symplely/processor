@@ -66,53 +66,35 @@ class Launcher implements ProcessInterface
 
     public function run()
     {
-        $isErred = false;
         try {
-            $this->process->run();     
-            if ($this->isSuccessful()) {       
-                return $this->triggerSuccess();
-		    }
-        } catch (\Throwable $e) {   
-            $isErred = true;
-        } catch (\Exception $e) {   
-            $isErred = true;
+            $this->start();     
+            $this->process->wait();
+        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
         }
 
-        if ($this->isTimedOut()) {
-            $this->triggerTimeout();
-        } elseif (! $this->isRunning() && $this->isTerminated()) {
-            $this->triggerError();
-        } elseif ($isErred) {
-            $this->process->stop(0);
-        }
+        return $this->checkProcess();
     }
 
     public function wait()
     {
-        $isErred = false;
-        try {
-            $this->process->wait();     
-            if ($this->isSuccessful()) {       
-                return $this->triggerSuccess();
-		    }
-        } catch (\Throwable $e) {   
-            $isErred = true;
-        } catch (\Exception $e) {   
-            $isErred = true;
-        }
+        $this->process->wait();
+    }
 
-        if ($this->isTimedOut()) {
-            $this->triggerTimeout();
-        } elseif (! $this->isRunning() && $this->isTerminated()) {
-            $this->triggerError();
-        } elseif ($isErred) {
-            $this->process->stop(0);
-        }
+    protected function checkProcess()
+    {
+        if ($this->isSuccessful()) {       
+            return $this->triggerSuccess();
+        } elseif ($this->isTimedOut()) {
+            return $this->triggerTimeout();
+        } 
+         
+        return $this->triggerError();
     }
 
     public function stop(): self
     {
-        $this->process->stop(10);
+        $this->process->stop();
 
         return $this;
     }

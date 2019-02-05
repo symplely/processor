@@ -29,4 +29,9 @@ class SerializableException
 
         return $throwable;
     }
+
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
 }

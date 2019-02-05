@@ -40,7 +40,7 @@ try {
 } catch (\Throwable $exception) {
 	if (!defined('_DS'))
 		define('_DS', DIRECTORY_SEPARATOR);
-    require_once __DIR__._DS.'..'._DS.'SerializableException.php';
+    require_once __DIR__._DS.'SerializableException.php';
 
     $output = new SerializableException($exception);
 

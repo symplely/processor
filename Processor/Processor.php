@@ -56,13 +56,13 @@ class Processor
     /**
      * Create a sub process for callable, cmd script, or any binary application.
      *
-     * @param callable $task
+     * @param mixed $task
      *
      * @return ProcessInterface
      */
     public static function create($task, int $timeout = 300): ProcessInterface
     {
-        if (\is_callable($task)) {
+        if (\is_callable($task) && !\is_string($task)) {
             if (! self::$isInitialized) {
                 self::init();
             } 

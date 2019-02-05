@@ -13,13 +13,15 @@ class ErrorHandlingTest extends TestCase
     /** @test */
     public function it_can_handle_exceptions_via_catch_callback()
     {
+        $error = null;
         $process = Processor::create(function () {
                 throw new \Exception('test');
-            })->catch(function (ProcessorError $e) {
+            })->catch(function (\Exception $e) use (&$error) {
                 $this->assertRegExp('/test/', $e->getMessage());
             });
 
         $process->run();
+        $this->assertFalse($process->isSuccessful());
         $this->assertTrue($process->isTerminated());
     }
  
@@ -34,16 +36,18 @@ class ErrorHandlingTest extends TestCase
 
         $process->run();
         $this->assertTrue($process->isSuccessful());
+        $this->assertEquals('test', $process->getErrorOutput());
+        $this->assertNull($process->getOutput());
     }
 
     /** @test */
     public function it_throws_the_exception_if_no_catch_callback()
     {
-        //$this->expectException(\Exception::class);
-        //$this->expectExceptionMessageRegExp('/test/');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageRegExp('/test/');
 
         $process = Processor::create(function () {
-            throw new MyException('test');
+            throw new \Exception('test');
         });
 
         $process->run();
@@ -52,11 +56,11 @@ class ErrorHandlingTest extends TestCase
     /** @test */
     public function it_throws_fatal_errors()
     {
-        //$this->expectException(\Error::class);
-        //$this->expectExceptionMessageRegExp('/test/');
+        $this->expectException(\Error::class);
+        $this->expectExceptionMessageRegExp('/test/');
 
         $process = Processor::create(function () {
-            throw new Error('test');
+            throw new \Error('test');
         });
 
         $process->run();
@@ -65,30 +69,13 @@ class ErrorHandlingTest extends TestCase
     /** @test */
     public function it_keeps_the_original_trace()
     {
-        $parallel = new Parallel();
-
-        $parallel->add(function () {
-            $myClass = new MyClass();
-
-            $myClass->throwException();
-        })->catch(function (ParallelError $exception) {
-            $this->assertStringContainsString('Async\Tests\MyClass->throwException()', $exception->getMessage());
+        $process = Processor::create(function () {
+            $error = new ProcessorError();
+            throw $error->fromException('test');
+        })->catch(function (ProcessorError $exception) {
+            $this->assertStringContainsString('Async\Processor\ProcessorError::fromException(\'test\')', $exception->getMessage());
         });
 
-        $parallel->wait();
-    }
-
-    /** @test */
-    public function it_handles_stderr_as_parallel_error()
-    {
-        $parallel = new Parallel();
-
-        $parallel->add(function () {
-            fwrite(STDERR, 'test');
-        })->catch(function (ParallelError $error) {
-            $this->assertStringContainsString('test', $error->getMessage());
-        });
-
-        $parallel->wait();
+        $process->run();
     }
 }
