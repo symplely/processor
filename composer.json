@@ -2,6 +2,10 @@
     "name": "uppes/processor",
     "description": "An Process control API for asynchronous PHP programming.",
     "keywords": [
+        "process",
+        "processor",
+        "command",
+        "task",
         "sub process",
         "async"
     ],
