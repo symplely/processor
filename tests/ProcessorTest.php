@@ -47,14 +47,17 @@ class ProcessorTest extends TestCase
     {
         $process = Processor::create(function () {
             usleep(1000);
-        });
+        }, 1);
         $this->assertFalse($process->isRunning());
+        $this->assertFalse($process->isTimedOut());
         $this->assertFalse($process->isTerminated());
         $process->start();
         $this->assertTrue($process->isRunning());
+        $this->assertFalse($process->isTimedOut());
         $this->assertFalse($process->isTerminated());
         $process->wait();
         $this->assertFalse($process->isRunning());
+        $this->assertTrue($process->isTimedOut());
         $this->assertTrue($process->isTerminated());
     }
 
@@ -68,7 +71,7 @@ class ProcessorTest extends TestCase
         }
 
         $p->run();
-        $this->assertSame('1', $p->getErrorOutput());
+        $this->assertSame('1', $p->getOutput());
     }
 
     public function testGetOutput()
@@ -82,7 +85,7 @@ class ProcessorTest extends TestCase
 		});
 
         $p->run();
-        $this->assertEquals(3, preg_match_all('/foo/', $p->getErrorOutput(), $matches));
+        $this->assertEquals(3, preg_match_all('/foo/', $p->getOutput(), $matches));
     }
 
     public function testGetErrorOutput()
@@ -122,7 +125,7 @@ class ProcessorTest extends TestCase
     {
         $process = Processor::create('echo foo');
         $process->run();
-        $this->assertStringContainsString('foo', $process->getErrorOutput());
+        $this->assertStringContainsString('foo', $process->getOutput());
     }
 
     public function testStop()

@@ -23,6 +23,8 @@ class Launcher implements ProcessInterface
 
     protected $output;
     protected $errorOutput;
+    protected $realOutput;
+    protected $realTimeOutput;
 
     protected $startTime;
 
@@ -46,7 +48,9 @@ class Launcher implements ProcessInterface
     {
         $this->startTime = \microtime(true);
 
-        $this->process->start();
+        $this->process->start(function ($type, $buffer) {
+            $this->realTimeOutput .= $buffer;
+        });
 
         $this->pid = $this->process->getPid();
 
@@ -68,6 +72,12 @@ class Launcher implements ProcessInterface
     public function run()
     {
         $this->start();
+
+        return $this->wait();
+    }
+
+    public function wait()
+    {
         while ($this->isRunning()) {
             if ($this->isTimedOut()) {
                 $this->stop();
@@ -76,11 +86,6 @@ class Launcher implements ProcessInterface
         }
 
         return $this->checkProcess();
-    }
-
-    public function wait()
-    {
-        $this->process->wait();
     }
 
     protected function checkProcess()
@@ -101,8 +106,9 @@ class Launcher implements ProcessInterface
 
     public function isTimedOut(): bool
     {
-        if (empty($this->timeout))
+        if (empty($this->timeout) || !$this->process->isStarted()) {
             return false;
+        }
 
         return ((\microtime(true) - $this->startTime) > $this->timeout);
     }
@@ -135,6 +141,23 @@ class Launcher implements ProcessInterface
         }
 
         return $this->output;
+    }
+
+    public function getRealOutput()
+    {
+        if (! $this->realOutput) {
+            $processOutput = $this->realTimeOutput;
+            
+            $this->realTimeOutput = null;
+
+            $this->realOutput = @\unserialize(\base64_decode($processOutput));
+
+            if (! $this->realOutput) {
+                $this->realOutput = $processOutput;
+            }
+        }
+
+        return $this->realOutput;
     }
 
     public function getErrorOutput()
@@ -190,11 +213,14 @@ class Launcher implements ProcessInterface
 
     public function triggerSuccess()
     {
-        if ($this->getErrorOutput()) {
+        if ($this->getRealOutput() && !$this->getErrorOutput()) {
+            $output = $this->realOutput;
+            $this->output = $output;
+        } elseif ($this->errorOutput) {
             return $this->triggerError();
+        } else {
+            $output = $this->getOutput();
         }
-
-        $output = $this->getOutput();
 
         foreach ($this->successCallbacks as $callback) {
             $callback($output);
