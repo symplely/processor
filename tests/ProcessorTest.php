@@ -47,7 +47,7 @@ class ProcessorTest extends TestCase
     {
         $process = Processor::create(function () {
             usleep(1000);
-        }, 1);
+        });
         $this->assertFalse($process->isRunning());
         $this->assertFalse($process->isTimedOut());
         $this->assertFalse($process->isTerminated());
@@ -57,7 +57,6 @@ class ProcessorTest extends TestCase
         $this->assertFalse($process->isTerminated());
         $process->wait();
         $this->assertFalse($process->isRunning());
-        $this->assertTrue($process->isTimedOut());
         $this->assertTrue($process->isTerminated());
     }
 
