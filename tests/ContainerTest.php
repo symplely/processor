@@ -26,6 +26,6 @@ class ContainerTest extends TestCase
 
         $process->wait();
 
-        $this->assertContains('child', $process->getOutput());
+        $this->assertStringContainsString('child', $process->getOutput());
     }
 }
