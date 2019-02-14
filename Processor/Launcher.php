@@ -211,72 +211,77 @@ class Launcher implements ProcessInterface
         return $this;
     }
 
-    public function triggerSuccess($isGenerator = false)
+    public function triggerSuccess()
     {
         if ($this->getRealOutput() && !$this->getErrorOutput()) {
             $output = $this->realOutput;
             $this->output = $output;
         } elseif ($this->errorOutput) {
-            return $this->triggerError($isGenerator);
+            return $this->triggerError();
         } else {
             $output = $this->getOutput();
         }
 
-        if ($isGenerator) {
-            $this->yieldSuccess($this->successCallbacks, $output);
-        } else {
-            foreach ($this->successCallbacks as $callback)
-                $callback($output);
-        }
+        foreach ($this->successCallbacks as $callback)
+            $callback($output);
 
         return $output;        
     }
 
-    protected function yieldSuccess(array $successCallbacks, $output)
-    {
-        foreach ($successCallbacks as $callback) {
-            $callback($output);
-            yield;
-        }  
-    }
-
-    public function triggerError($isGenerator = false)
+    public function triggerError()
     {
         $exception = $this->resolveErrorOutput();
 
-        if ($isGenerator) {
-            $this->yieldError($this->errorCallbacks, $exception);
-        } else {
-            foreach ($this->errorCallbacks as $callback) 
-                $callback($exception);
-        }
+        foreach ($this->errorCallbacks as $callback) 
+            $callback($exception);
         
         if (! $this->errorCallbacks) {
             throw $exception;
         }
     }
 
-    protected function yieldError(array $errorCallbacks, $exception)
+    public function triggerTimeout()
     {
-        foreach ($errorCallbacks as $callback) { 
+        foreach ($this->timeoutCallbacks as $callback) 
+            $callback();
+    }
+
+    public function yieldSuccess()
+    {
+        if ($this->getRealOutput() && !$this->getErrorOutput()) {
+            $output = $this->realOutput;
+            $this->output = $output;
+        } elseif ($this->errorOutput) {
+            return $this->yieldError();
+        } else {
+            $output = $this->getOutput();
+        }
+
+        foreach ($this->successCallbacks as $callback) {
+            $callback($output);
+            yield;
+        }  
+
+        return $output;
+    }
+
+    public function yieldError()
+    {
+        $exception = $this->resolveErrorOutput();
+
+        foreach ($this->errorCallbacks as $callback) { 
             $callback($exception);
             yield;
         }
+        
+        if (! $this->errorCallbacks) {
+            throw $exception;
+        }        
     }
 
-    public function triggerTimeout($isGenerator = false)
+    public function yieldTimeout()
     {
-        if ($isGenerator) {
-            $this->yieldTimeout($this->timeoutCallbacks);
-        } else {
-            foreach ($this->timeoutCallbacks as $callback) 
-                $callback();
-        }
-    }
-
-    protected function yieldTimeout(array $timeoutCallbacks)
-    {
-        foreach ($timeoutCallbacks as $callback) {
+        foreach ($this->timeoutCallbacks as $callback) {
             $callback();
             yield;
         }
