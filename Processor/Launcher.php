@@ -211,7 +211,7 @@ class Launcher implements ProcessInterface
         return $this;
     }
 
-    public function triggerSuccess()
+    public function triggerSuccess($isGenerator = false)
     {
         if ($this->getRealOutput() && !$this->getErrorOutput()) {
             $output = $this->realOutput;
@@ -224,19 +224,21 @@ class Launcher implements ProcessInterface
 
         foreach ($this->successCallbacks as $callback) {
             $callback($output);
-            yield;
+            if ($isGenerator)
+                yield;
         }
 
         return $output;        
     }
 
-    public function triggerError()
+    public function triggerError($isGenerator = false)
     {
         $exception = $this->resolveErrorOutput();
 
         foreach ($this->errorCallbacks as $callback) { 
             $callback($exception);
-            yield;
+            if ($isGenerator)
+                yield;
         }
         
         if (! $this->errorCallbacks) {
@@ -244,11 +246,12 @@ class Launcher implements ProcessInterface
         }
     }
 
-    public function triggerTimeout()
+    public function triggerTimeout($isGenerator = false)
     {
         foreach ($this->timeoutCallbacks as $callback) {
             $callback();
-            yield;
+            if ($isGenerator)
+                yield;
         }
     }
     
