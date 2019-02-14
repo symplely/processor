@@ -224,6 +224,7 @@ class Launcher implements ProcessInterface
 
         foreach ($this->successCallbacks as $callback) {
             $callback($output);
+            yield;
         }
 
         return $output;        
@@ -235,6 +236,7 @@ class Launcher implements ProcessInterface
 
         foreach ($this->errorCallbacks as $callback) { 
             $callback($exception);
+            yield;
         }
         
         if (! $this->errorCallbacks) {
@@ -246,6 +248,7 @@ class Launcher implements ProcessInterface
     {
         foreach ($this->timeoutCallbacks as $callback) {
             $callback();
+            yield;
         }
     }
     
