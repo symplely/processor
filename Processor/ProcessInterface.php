@@ -15,14 +15,45 @@ interface ProcessInterface extends ProcessorInterface
      */
     public function start();
 
+    /**
+     * Restart the process
+     * 
+     * @return ProcessInterface
+     */
     public function restart();
-    
-    public function wait();
 
+    /**
+     * Waits for all processes to terminate
+     *
+     * @param int $waitTimer    Halt time in micro seconds
+     */
+    public function wait($waitTimer = 1000);
+
+    /**
+     * Add handlers to be called when the process is successful
+     *
+     * @param callable $callback
+     *
+     * @return $this
+     */
     public function then(callable $callback);
 
+    /**
+     * Add handlers to be called when the process has errors
+     *
+     * @param callable $callback
+     *
+     * @return $this
+     */
     public function catch(callable $callback);
 
+    /**
+     * Add handlers to be called when the process has timed out
+     *
+     * @param callable $callback
+     *
+     * @return $this
+     */
     public function timeout(callable $callback);
 
     /**

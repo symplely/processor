@@ -76,13 +76,15 @@ class Launcher implements ProcessInterface
         return $this->wait();
     }
 
-    public function wait()
+    public function wait($waitTimer = 1000)
     {
         while ($this->isRunning()) {
             if ($this->isTimedOut()) {
                 $this->stop();
                 return $this->triggerTimeout();
             }
+            
+            usleep($waitTimer);
         }
 
         return $this->checkProcess();
@@ -258,8 +260,7 @@ class Launcher implements ProcessInterface
         }
 
         foreach ($this->successCallbacks as $callback) {
-            $callback($output);
-            yield;
+            yield $callback($output);
         }  
 
         return $output;
@@ -270,8 +271,7 @@ class Launcher implements ProcessInterface
         $exception = $this->resolveErrorOutput();
 
         foreach ($this->errorCallbacks as $callback) { 
-            $callback($exception);
-            yield;
+            yield $callback($exception);
         }
         
         if (! $this->errorCallbacks) {
@@ -282,8 +282,8 @@ class Launcher implements ProcessInterface
     public function yieldTimeout()
     {
         foreach ($this->timeoutCallbacks as $callback) {
-            $callback();
-            yield;
+            yield $callback();
+            
         }
     }
     
