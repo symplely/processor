@@ -31,6 +31,7 @@ class Launcher implements ProcessInterface
     protected $successCallbacks = [];
     protected $errorCallbacks = [];
     protected $timeoutCallbacks = [];
+    protected $progressCallbacks = [];
 
     private function __construct(Process $process, int $id, int $timeout = 300)
     {
@@ -84,6 +85,7 @@ class Launcher implements ProcessInterface
                 return $this->triggerTimeout();
             }
             
+            $this->triggerOutput( $this->getRealOutput() );
             usleep($waitTimer);
         }
 
@@ -157,6 +159,9 @@ class Launcher implements ProcessInterface
             if (! $this->realOutput) {
                 $this->realOutput = $processOutput;
             }
+        } elseif ($this->realTimeOutput) {
+            $this->realOutput .= @\unserialize(\base64_decode($this->realTimeOutput));
+            $this->realTimeOutput = null;
         }
 
         return $this->realOutput;
@@ -192,7 +197,29 @@ class Launcher implements ProcessInterface
         return $this->pid;
     }
 
-    public function then(callable $callback): self
+    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null): self
+    {
+        $this->done($doneCallback);
+
+        if ($failCallback !== null) {
+            $this->catch($failCallback);
+        }
+
+        if ($progressCallback !== null) {
+            $this->progress($progressCallback);
+        }
+
+        return $this;
+    }
+
+    public function progress(callable $progressCallback)
+    {
+        $this->progressCallbacks[] = $progressCallback;
+        
+        return $this;
+    }
+
+    public function done(callable $callback): self
     {
         $this->successCallbacks[] = $callback;
 
@@ -211,6 +238,13 @@ class Launcher implements ProcessInterface
         $this->timeoutCallbacks[] = $callback;
 
         return $this;
+    }
+
+    public function triggerOutput($update = null)
+    {
+        foreach ($this->progressCallbacks as $progressCallback) {
+            $progressCallback($update);
+        }
     }
 
     public function triggerSuccess()
@@ -248,6 +282,13 @@ class Launcher implements ProcessInterface
             $callback();
     }
 
+    public function yieldLiveUpdate($update = null, $type = null)
+    {
+        foreach ($this->progressCallbacks as $progressCallback) {
+            yield $progressCallback($update, $type);
+        }
+    }
+
     public function yieldSuccess()
     {
         if ($this->getRealOutput() && !$this->getErrorOutput()) {
@@ -282,8 +323,7 @@ class Launcher implements ProcessInterface
     public function yieldTimeout()
     {
         foreach ($this->timeoutCallbacks as $callback) {
-            yield $callback();
-            
+            yield $callback();            
         }
     }
     

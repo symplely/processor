@@ -30,13 +30,42 @@ interface ProcessInterface extends ProcessorInterface
     public function wait($waitTimer = 1000);
 
     /**
+     * Add handlers to be called when the process is successful, erred or progressing in real time
+     *
+     * @param callable $doneCallback
+     * @param callable $failCallback
+     * @param callable $progressCallback
+     *
+     * @return $this
+     */
+    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null);
+
+    /**
      * Add handlers to be called when the process is successful
      *
      * @param callable $callback
      *
      * @return $this
      */
-    public function then(callable $callback);
+    public function done(callable $callback);
+
+    /**
+     * Add handlers to be called when the process progressing output in real time
+     *
+     * @param callable $progressCallback
+     *
+     * @return $this
+     */
+    public function progress(callable $progressCallback);
+
+    /**
+     * Call the progressCallbacks on the process output in real time
+     *
+     * @param mixed  $update
+     *
+     * @return $this
+     */
+    public function triggerOutput($update = null);
 
     /**
      * Add handlers to be called when the process has errors
