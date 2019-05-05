@@ -2,9 +2,7 @@
 
 namespace Async\Processor;
 
-use Async\Loop\ProcessorInterface;
-
-interface ProcessInterface extends ProcessorInterface
+interface ProcessInterface
 {	
     public function getId(): int;
 

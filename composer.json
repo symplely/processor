@@ -20,7 +20,6 @@
     ],
     "require": {
         "php": ">7.1",
-        "uppes/eventloop": "^1.0.8",
         "opis/closure": "^3.0",
         "symfony/process": "^4.2"
     },
