@@ -1,5 +1,5 @@
 {
-    "name": "uppes/processor",
+    "name": "symplely/processor",
     "description": "An Process control API for asynchronous PHP programming.",
     "keywords": [
         "process",
@@ -9,7 +9,7 @@
         "sub process",
         "async"
     ],
-    "homepage": "https://github.com/uppes/processor",
+    "homepage": "https://github.com/symplely/processor",
     "type": "library",
     "license": "MIT",
     "authors": [
