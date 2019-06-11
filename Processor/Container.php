@@ -28,12 +28,6 @@ try {
 
     $serializedOutput = \base64_encode(\serialize($output));
 
-    //$outputLength = 1024 * 10;
-
-    //if (\strlen($serializedOutput) > $outputLength) {
-    //    throw ProcessorError::outputTooLarge($outputLength);
-    //}
-
     \fwrite(\STDOUT, $serializedOutput);
 
     exit(0);

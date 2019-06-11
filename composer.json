@@ -1,6 +1,6 @@
 {
     "name": "symplely/processor",
-    "description": "An Process control API for asynchronous PHP programming.",
+    "description": "An Symfony Process Manager offering Parallel and asynchronous PHP for Blocking I/O.",
     "keywords": [
         "process",
         "processor",
@@ -24,6 +24,9 @@
         "symfony/process": "^4.2"
     },
     "autoload": {
+        "files": [
+            "Processor/functions.php"
+        ],
         "psr-4": { 
 			"Async\\Processor\\": "Processor/"
 		}

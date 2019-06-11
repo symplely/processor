@@ -60,7 +60,7 @@ class Processor
      *
      * @return ProcessInterface
      */
-    public static function create($task, int $timeout = 300): ProcessInterface
+    public static function create($task, int $timeout = 300, $input = null): ProcessInterface
     {
         if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {
             if (! self::$isInitialized) {
@@ -72,11 +72,11 @@ class Processor
                 self::$containerScript,
                 self::$autoload,
                 self::encodeTask($task),
-            ]), null, null, null, $timeout);
+            ]), null, null, $input, $timeout);
         } elseif (\is_string($task)) {
-            $process = Process::fromShellCommandline($task, null, null, null, $timeout);
+            $process = Process::fromShellCommandline($task, null, null, $input, $timeout);
         } else {
-            $process = new Process($task, null, null, null, $timeout);
+            $process = new Process($task, null, null, $input, $timeout);
         }
 
         return Launcher::create($process, self::getId(), $timeout);
@@ -89,7 +89,7 @@ class Processor
      *
      * @return ProcessInterface
      */
-    public static function daemon($task): ProcessInterface
+    public static function daemon($task, $channel = null): ProcessInterface
     {
         if (\is_string($task)) {
 			$shadow = (('\\' === \DIRECTORY_SEPARATOR) ? 'start /b ' : 'nohup ').$task;
@@ -98,7 +98,7 @@ class Processor
 			$shadow[] = $task;
         }
 				
-        return Processor::create($shadow, 0);
+        return Processor::create($shadow, 0, $channel);
     }
 	
     /**
