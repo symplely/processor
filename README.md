@@ -1,6 +1,6 @@
 # Processor
 
-[![Build Status](https://travis-ci.org/symplely/processor.svg?branch=master)](https://travis-ci.org/symplely/processor)[![Build status](https://ci.appveyor.com/api/projects/status/5ns559880b4nsi3j/branch/master?svg=true)](https://ci.appveyor.com/project/techno-express/processor/branch/master)[![codecov](https://codecov.io/gh/symplely/processor/branch/master/graph/badge.svg)](https://codecov.io/gh/symplely/processor)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/97cfd5c519bf4dc489eda97d7b61c00b)](https://www.codacy.com/app/techno-express/processor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=symplely/processor&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/symplely/processor.svg?branch=master)](https://travis-ci.org/symplely/processor)[![Build status](https://ci.appveyor.com/api/projects/status/5ns559880b4nsi3j/branch/master?svg=true)](https://ci.appveyor.com/project/techno-express/processor/branch/master)[![codecov](https://codecov.io/gh/symplely/processor/branch/master/graph/badge.svg)](https://codecov.io/gh/symplely/processor)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/77f00be68e664239a7dadfd4892c796b)](https://www.codacy.com/app/techno-express/processor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=symplely/processor&amp;utm_campaign=Badge_Grade)
 
 An simply __process manager__ wrapper API for [symfony/process](https://github.com/symfony/process) to _execute_ and _manage_ **sub-processes**.
 
