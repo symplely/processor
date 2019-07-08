@@ -95,3 +95,11 @@ If an `Exception` or `Error` is thrown from within a child process, it can be ca
 If there's no error handler added, the error will be thrown in the parent process when calling `spawn_run()` or `$process->run()`.
 
 If the child process would unexpectedly stop without throwing an `Throwable`, the output written to `stderr` will be wrapped and thrown as `Async\Processor\ProcessorError` in the parent process.
+
+## Contributing
+
+Contributions are encouraged and welcome; I am always happy to get feedback or pull requests on Github :) Create [Github Issues](https://github.com/symplely/processor/issues) for bugs and new features and comment on the ones you are interested in.
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
