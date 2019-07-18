@@ -8,8 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
 {
-    /** @test */
-    public function it_can_run()
+    public function testIt_can_run()
 	{
 		if (!defined('_DS'))
 			define('_DS', DIRECTORY_SEPARATOR);

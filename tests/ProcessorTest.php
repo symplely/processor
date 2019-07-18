@@ -8,9 +8,8 @@ use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
 
 class ProcessorTest extends TestCase
-{	
-    /** @test */
-    public function it_can_handle_success()
+{
+    public function testIt_can_handle_success()
     {
         $counter = 0;
 
@@ -26,8 +25,7 @@ class ProcessorTest extends TestCase
         $this->assertEquals(2, $counter);
     }
 
-    /** @test */
-    public function it_can_handle_timeout()
+    public function testIt_can_handle_timeout()
     {
         $counter = 0;
 

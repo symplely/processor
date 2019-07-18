@@ -10,8 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class ErrorHandlingTest extends TestCase
 {
-    /** @test */
-    public function it_can_handle_exceptions_via_catch_callback()
+    public function testIt_can_handle_exceptions_via_catch_callback()
     {
         $process = Processor::create(function () {
                 throw new \Exception('test');
@@ -24,8 +23,7 @@ class ErrorHandlingTest extends TestCase
         $this->assertTrue($process->isTerminated());
     }
  
-    /** @test */
-    public function it_handles_stderr_as_processor_error()
+    public function testIt_handles_stderr_as_processor_error()
     {
         $process = Processor::create(function () {
             fwrite(STDERR, 'test');
@@ -39,8 +37,7 @@ class ErrorHandlingTest extends TestCase
         $this->assertNull($process->getOutput());
     }
 
-    /** @test */
-    public function it_throws_the_exception_if_no_catch_callback()
+    public function testIt_throws_the_exception_if_no_catch_callback()
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessageRegExp('/test/');
@@ -52,8 +49,7 @@ class ErrorHandlingTest extends TestCase
         $process->run();
     }
 
-    /** @test */
-    public function it_throws_fatal_errors()
+    public function testIt_throws_fatal_errors()
     {
         $this->expectException(\Error::class);
         $this->expectExceptionMessageRegExp('/test/');
@@ -65,8 +61,7 @@ class ErrorHandlingTest extends TestCase
         $process->run();
     }
 
-    /** @test */
-    public function it_keeps_the_original_trace()
+    public function testIt_keeps_the_original_trace()
     {
         $process = Processor::create(function () {
             $error = new ProcessorError();
