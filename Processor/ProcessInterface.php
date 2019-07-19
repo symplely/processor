@@ -21,11 +21,27 @@ interface ProcessInterface
     public function restart();
 
     /**
+     * Start the process and wait to terminate
+     * 
+     * @param bool $useYield - should we use generator callback functions
+     */
+    public function run(bool $useYield = false);
+
+    /**
+     * Return an generator that can start 
+     * the process and wait to terminate
+     * 
+     * @return \Generator
+     */
+    public function yielding();
+
+    /**
      * Waits for all processes to terminate
      *
-     * @param int $waitTimer    Halt time in micro seconds
+     * @param int $waitTimer - Halt time in micro seconds
+     * @param bool $useYield - should we use generator callback functions
      */
-    public function wait($waitTimer = 1000);
+    public function wait($waitTimer = 1000, bool $useYield = false);
 
     /**
      * Add handlers to be called when the process is successful, erred or progressing in real time

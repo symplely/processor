@@ -70,33 +70,54 @@ class Launcher implements ProcessInterface
         return $launcher->start();
     }
 
-    public function run()
+    public function run(bool $useYield = false)
     {
         $this->start();
+
+        if ($useYield)
+            return $this->wait(1000, true);
 
         return $this->wait();
     }
 
-    public function wait($waitTimer = 1000)
+    public function yielding()
+    {
+        return yield from $this->run(true);
+    }
+
+    public function wait($waitTimer = 1000, bool $useYield = false)
     {
         while ($this->isRunning()) {
             if ($this->isTimedOut()) {
                 $this->stop();
+                if ($useYield)
+                    return $this->yieldTimeout();
+
                 return $this->triggerTimeout();
             }
             
-            $this->triggerOutput( $this->getRealOutput() );
-            usleep($waitTimer);
+            if ($useYield)
+                $this->yieldLiveUpdate( $this->getRealOutput());
+            else
+                $this->triggerOutput( $this->getRealOutput() );
+
+            \usleep($waitTimer);
         }
 
-        return $this->checkProcess();
+        return $this->checkProcess($useYield);
     }
 
-    protected function checkProcess()
+    protected function checkProcess(bool $useYield = false)
     {
         if ($this->isSuccessful()) {
+            if ($useYield)
+                return $this->yieldSuccess();
+
             return $this->triggerSuccess();
         } 
+
+        if ($useYield)
+            return $this->yieldError();
 
         return $this->triggerError();
     }

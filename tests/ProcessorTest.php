@@ -25,6 +25,28 @@ class ProcessorTest extends TestCase
         $this->assertEquals(2, $counter);
     }
 
+    public function testIt_can_handle_success_yield()
+    {
+        $counter = 0;
+
+        $process = Processor::create(function () {
+            return 2;
+        })->then(function (int $output) use (&$counter) {
+            $counter = $output;
+        });
+	
+        $pause = $process->yielding();
+        $this->assertEquals(0, $counter);
+
+        $this->assertTrue($pause instanceof \Generator);
+        $this->assertFalse($process->isSuccessful());
+
+        $this->assertNull($pause->current());
+        $this->assertTrue($process->isSuccessful());
+
+        $this->assertEquals(2, $counter);
+    }
+
     public function testIt_can_handle_timeout()
     {
         $counter = 0;
@@ -38,6 +60,24 @@ class ProcessorTest extends TestCase
         $process->run();
         $this->assertTrue($process->isTimedOut());
 
+        $this->assertEquals(1, $counter);
+    }
+
+    public function testIt_can_handle_timeout_yield()
+    {
+        $counter = 0;
+
+        $process = Processor::create(function () {
+            sleep(1000);
+        }, 1)->timeout(function () use (&$counter) {
+            $counter += 1;
+        });
+
+        $pause = $process->yielding();
+        $this->assertFalse($process->isTimedOut());
+
+        $this->assertNull($pause->current());
+        $this->assertTrue($process->isTimedOut());
         $this->assertEquals(1, $counter);
     }
 
@@ -98,6 +138,22 @@ class ProcessorTest extends TestCase
         });
 
         $p->run();
+    }
+
+    public function testGetErrorOutputYield()
+    {
+        $p = Processor::create(function () {
+			$n = 0; 
+			while ($n < 3) { 
+				file_put_contents('php://stderr', 'ERROR'); 
+				$n++; 
+			}
+		})->catch(function (ProcessorError $error) {
+            $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
+        });
+
+        $pause = $p->yielding();
+        $this->assertNull($pause->current());
     }
 
     public function testRestart()

@@ -22,6 +22,19 @@ class ErrorHandlingTest extends TestCase
         $this->assertFalse($process->isSuccessful());
         $this->assertTrue($process->isTerminated());
     }
+
+    public function testIt_can_handle_exceptions_via_catch_callback_yield()
+    {
+        $process = Processor::create(function () {
+                throw new \Exception('test');
+            })->catch(function (\Exception $e) {
+                $this->assertRegExp('/test/', $e->getMessage());
+            });
+
+        $pause = $process->yielding();
+        $this->assertNull($pause->current());
+        $this->assertTrue($process->isTerminated());
+    }
  
     public function testIt_handles_stderr_as_processor_error()
     {
