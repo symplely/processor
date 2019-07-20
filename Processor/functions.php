@@ -7,18 +7,18 @@ if (! \function_exists('spawn')) {
     /**
      * Create an process by shell command or callable.
 	 * 
-     * @param shell|callable $somethingToRun
-     * @param mixed $processChannel
+     * @param shell|callable $shellCallable
      * @param int $timeout 
+     * @param mixed $processChannel
      *
      * @return ProcessInterface
      */
-    function spawn($somethingToRun, $processChannel = null, int $timeout = 300): ProcessInterface
+    function spawn($shellCallable, int $timeout = 300, $processChannel = null): ProcessInterface
     {
-		return Processor::create($somethingToRun, $timeout, $processChannel);
-	}
+		return Processor::create($shellCallable, $timeout, $processChannel);
+    }
 
-    function spawn_run(ProcessInterface $process)
+    function await_spawn(ProcessInterface $process)
     {
 		return $process->run();
     }

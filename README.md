@@ -21,7 +21,7 @@ include 'vendor/autoload.php';
 
 use Async\Processor\Processor;
 
-$process = \spawn($function, $channel, $timeout)
+$process = \spawn($function, $timeout, $channel)
 // Or
 $process = Processor::create(function () use ($thing) {
     // Do a thing

@@ -19,7 +19,7 @@ class ProcessorTest extends TestCase
             $counter = $output;
         });
 	
-        $process->run();
+        await_spawn($process);
         $this->assertTrue($process->isSuccessful());
 
         $this->assertEquals(2, $counter);
@@ -29,7 +29,7 @@ class ProcessorTest extends TestCase
     {
         $counter = 0;
 
-        $process = Processor::create(function () {
+        $process = spawn(function () {
             return 2;
         })->then(function (int $output) use (&$counter) {
             $counter = $output;
@@ -127,7 +127,7 @@ class ProcessorTest extends TestCase
 
     public function testGetErrorOutput()
     {
-        $p = Processor::create(function () {
+        $p = spawn(function () {
 			$n = 0; 
 			while ($n < 3) { 
 				file_put_contents('php://stderr', 'ERROR'); 
@@ -137,7 +137,7 @@ class ProcessorTest extends TestCase
             $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
         });
 
-        $p->run();
+        await_spawn($p);
     }
 
     public function testGetErrorOutputYield()
