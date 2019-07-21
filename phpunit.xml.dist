@@ -19,6 +19,9 @@
     <filter>
         <whitelist>
             <directory suffix=".php">Processor/</directory>
+            <exclude>
+                <file>./Processor/Container.php</file>
+            </exclude>
         </whitelist>		
     </filter>
 	
