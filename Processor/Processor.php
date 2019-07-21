@@ -62,17 +62,17 @@ class Processor
      */
     public static function create($task, int $timeout = 300, $input = null): ProcessInterface
     {
-        if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {
-            if (! self::$isInitialized) {
-                self::init();
-            } 
-            
-            $process = new Process(\implode(' ', [
+        if (! self::$isInitialized) {
+            self::init();
+        }
+
+        if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {  
+            $process = new Process([
                 'php',
                 self::$containerScript,
                 self::$autoload,
                 self::encodeTask($task),
-            ]), null, null, $input, $timeout);
+            ], null, null, $input, $timeout);
         } elseif (\is_string($task)) {
             $process = Process::fromShellCommandline($task, null, null, $input, $timeout);
         } else {
