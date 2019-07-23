@@ -2,7 +2,7 @@
 /**
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
- */ 
+ */
 namespace Async\Processor;
 
 use Throwable;
@@ -57,7 +57,7 @@ class Launcher implements ProcessInterface
 
         return $this;
     }
-	
+
     public function restart(): self
     {
         if ($this->isRunning())
@@ -95,7 +95,7 @@ class Launcher implements ProcessInterface
 
                 return $this->triggerTimeout();
             }
-            
+
             if ($useYield)
                 $this->yieldLiveUpdate( $this->getRealOutput());
             else
@@ -114,7 +114,7 @@ class Launcher implements ProcessInterface
                 return $this->yieldSuccess();
 
             return $this->triggerSuccess();
-        } 
+        }
 
         if ($useYield)
             return $this->yieldError();
@@ -172,7 +172,7 @@ class Launcher implements ProcessInterface
     {
         if (! $this->realOutput) {
             $processOutput = $this->realTimeOutput;
-            
+
             $this->realTimeOutput = null;
 
             $this->realOutput = @\unserialize(\base64_decode($processOutput));
@@ -236,7 +236,7 @@ class Launcher implements ProcessInterface
     public function progress(callable $progressCallback)
     {
         $this->progressCallbacks[] = $progressCallback;
-        
+
         return $this;
     }
 
@@ -273,25 +273,26 @@ class Launcher implements ProcessInterface
         if ($this->getRealOutput() && !$this->getErrorOutput()) {
             $output = $this->realOutput;
             $this->output = $output;
-        } elseif ($this->errorOutput) {
+        } elseif ($this->getErrorOutput()) {
             return $this->triggerError();
         } else {
             $output = $this->getOutput();
+            $output = !empty($this->output) ? $output : $this->realTimeOutput;
         }
 
         foreach ($this->successCallbacks as $callback)
             $callback($output);
 
-        return $output;        
+        return $output;
     }
 
     public function triggerError()
     {
         $exception = $this->resolveErrorOutput();
 
-        foreach ($this->errorCallbacks as $callback) 
+        foreach ($this->errorCallbacks as $callback)
             $callback($exception);
-        
+
         if (! $this->errorCallbacks) {
             throw $exception;
         }
@@ -299,7 +300,7 @@ class Launcher implements ProcessInterface
 
     public function triggerTimeout()
     {
-        foreach ($this->timeoutCallbacks as $callback) 
+        foreach ($this->timeoutCallbacks as $callback)
             $callback();
     }
 
@@ -323,7 +324,7 @@ class Launcher implements ProcessInterface
 
         foreach ($this->successCallbacks as $callback) {
             yield $callback($output);
-        }  
+        }
 
         return $output;
     }
@@ -332,22 +333,22 @@ class Launcher implements ProcessInterface
     {
         $exception = $this->resolveErrorOutput();
 
-        foreach ($this->errorCallbacks as $callback) { 
+        foreach ($this->errorCallbacks as $callback) {
             yield $callback($exception);
         }
-        
+
         if (! $this->errorCallbacks) {
             throw $exception;
-        }        
+        }
     }
 
     public function yieldTimeout()
     {
         foreach ($this->timeoutCallbacks as $callback) {
-            yield $callback();            
+            yield $callback();
         }
     }
-    
+
     protected function resolveErrorOutput(): Throwable
     {
         $exception = $this->getErrorOutput();
