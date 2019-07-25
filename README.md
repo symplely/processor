@@ -44,7 +44,7 @@ You can add the following event hooks on a process.
 
 ```php
 
-$process = spawn($function, $channel, $timeout)
+$process = spawn($function, $timeout, $channel)
 // Or
 $process = Processor::create(function () {
         // The second argument is optional, Defaults 300.
