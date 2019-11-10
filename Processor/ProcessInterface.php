@@ -1,36 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Async\Processor;
 
 interface ProcessInterface
-{	
+{
     public function getId(): int;
 
     /**
      * Start the process
-     * 
+     *
      * @return ProcessInterface
      */
     public function start();
 
     /**
      * Restart the process
-     * 
+     *
      * @return ProcessInterface
      */
     public function restart();
 
     /**
      * Start the process and wait to terminate
-     * 
+     *
      * @param bool $useYield - should we use generator callback functions
      */
     public function run(bool $useYield = false);
 
     /**
-     * Return an generator that can start 
+     * Return an generator that can start
      * the process and wait to terminate
-     * 
+     *
      * @return \Generator
      */
     public function yielding();
@@ -105,11 +107,11 @@ interface ProcessInterface
      * @return string The process output
      */
     public function getOutput();
-		
+
     /**
      * Returns the current error output of the process (STDERR).
      *
      * @return string The process error output
-     */   
+     */
     public function getErrorOutput();
 }

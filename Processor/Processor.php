@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Async\Processor;
 
 use Closure;
@@ -24,22 +26,21 @@ class Processor
     protected static $myPid = null;
 
     private function __construct()
-    {
-    }
+    { }
 
     public static function init(string $autoload = null)
-    {            
-        if (! $autoload) {
+    {
+        if (!$autoload) {
             if (!defined('_DS'))
                 define('_DS', DIRECTORY_SEPARATOR);
 
             $existingAutoloadFiles = \array_filter([
-                __DIR__._DS.'..'._DS.'..'._DS.'..'._DS.'..'._DS.'autoload.php',
-                __DIR__._DS.'..'._DS.'..'._DS.'..'._DS.'autoload.php',
-                __DIR__._DS.'..'._DS.'..'._DS.'vendor'._DS.'autoload.php',
-                __DIR__._DS.'..'._DS.'vendor'._DS.'autoload.php',
-                __DIR__._DS.'vendor'._DS.'autoload.php',
-                __DIR__._DS.'..'._DS.'..'._DS.'..'._DS.'vendor'._DS.'autoload.php',
+                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
+                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
+                __DIR__ . _DS . '..' . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
+                __DIR__ . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
+                __DIR__ . _DS . 'vendor' . _DS . 'autoload.php',
+                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
             ], function (string $path) {
                 return \file_exists($path);
             });
@@ -48,7 +49,7 @@ class Processor
         }
 
         self::$autoload = $autoload;
-        self::$containerScript = __DIR__.DIRECTORY_SEPARATOR.'Container.php';
+        self::$containerScript = __DIR__ . DIRECTORY_SEPARATOR . 'Container.php';
 
         self::$isInitialized = true;
     }
@@ -62,11 +63,11 @@ class Processor
      */
     public static function create($task, int $timeout = 300, $input = null): ProcessInterface
     {
-        if (! self::$isInitialized) {
+        if (!self::$isInitialized) {
             self::init();
         }
 
-        if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {  
+        if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {
             $process = new Process([
                 'php',
                 self::$containerScript,
@@ -79,9 +80,9 @@ class Processor
             $process = new Process($task, null, null, $input, $timeout);
         }
 
-        return Launcher::create($process, self::getId(), $timeout);
-	}
-	
+        return Launcher::create($process, (int) self::getId(), $timeout);
+    }
+
     /**
      * Daemon a process to run in the background.
      *
@@ -92,15 +93,15 @@ class Processor
     public static function daemon($task, $channel = null): ProcessInterface
     {
         if (\is_string($task)) {
-			$shadow = (('\\' === \DIRECTORY_SEPARATOR) ? 'start /b ' : 'nohup ').$task;
+            $shadow = (('\\' === \DIRECTORY_SEPARATOR) ? 'start /b ' : 'nohup ') . $task;
         } else {
-			$shadow[] = ('\\' === \DIRECTORY_SEPARATOR) ? 'start /b' : 'nohup';
-			$shadow[] = $task;
+            $shadow[] = ('\\' === \DIRECTORY_SEPARATOR) ? 'start /b' : 'nohup';
+            $shadow[] = $task;
         }
-				
+
         return Processor::create($shadow, 0, $channel);
     }
-	
+
     /**
      * @param callable $task
      *
@@ -128,6 +129,6 @@ class Processor
 
         self::$currentId += 1;
 
-        return (string) self::$currentId.(string) self::$myPid;
+        return (string) self::$currentId . (string) self::$myPid;
     }
 }

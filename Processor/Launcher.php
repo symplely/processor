@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Async\Processor;
 
 use Throwable;
@@ -97,9 +101,9 @@ class Launcher implements ProcessInterface
             }
 
             if ($useYield)
-                $this->yieldLiveUpdate( $this->getRealOutput());
+                $this->yieldLiveUpdate($this->getRealOutput());
             else
-                $this->triggerOutput( $this->getRealOutput() );
+                $this->triggerOutput($this->getRealOutput());
 
             \usleep($waitTimer);
         }
@@ -155,12 +159,12 @@ class Launcher implements ProcessInterface
 
     public function getOutput()
     {
-        if (! $this->output) {
+        if (!$this->output) {
             $processOutput = $this->process->getOutput();
 
-            $this->output = @\unserialize(\base64_decode($processOutput));
+            $this->output = @\unserialize(\base64_decode((string) $processOutput));
 
-            if (! $this->output) {
+            if (!$this->output) {
                 $this->errorOutput = $processOutput;
             }
         }
@@ -170,18 +174,18 @@ class Launcher implements ProcessInterface
 
     public function getRealOutput()
     {
-        if (! $this->realOutput) {
+        if (!$this->realOutput) {
             $processOutput = $this->realTimeOutput;
 
             $this->realTimeOutput = null;
 
-            $this->realOutput = @\unserialize(\base64_decode($processOutput));
+            $this->realOutput = @\unserialize(\base64_decode((string) $processOutput));
 
-            if (! $this->realOutput) {
+            if (!$this->realOutput) {
                 $this->realOutput = $processOutput;
             }
         } elseif ($this->realTimeOutput) {
-            $this->realOutput .= @\unserialize(\base64_decode($this->realTimeOutput));
+            $this->realOutput .= @\unserialize(\base64_decode((string) $this->realTimeOutput));
             $this->realTimeOutput = null;
         }
 
@@ -190,12 +194,12 @@ class Launcher implements ProcessInterface
 
     public function getErrorOutput()
     {
-        if (! $this->errorOutput) {
+        if (!$this->errorOutput) {
             $processOutput = $this->process->getErrorOutput();
 
-            $this->errorOutput = @\unserialize(\base64_decode($processOutput));
+            $this->errorOutput = @\unserialize(\base64_decode((string) $processOutput));
 
-            if (! $this->errorOutput) {
+            if (!$this->errorOutput) {
                 $this->errorOutput = $processOutput;
             }
         }
@@ -293,7 +297,7 @@ class Launcher implements ProcessInterface
         foreach ($this->errorCallbacks as $callback)
             $callback($exception);
 
-        if (! $this->errorCallbacks) {
+        if (!$this->errorCallbacks) {
             throw $exception;
         }
     }
@@ -337,7 +341,7 @@ class Launcher implements ProcessInterface
             yield $callback($exception);
         }
 
-        if (! $this->errorCallbacks) {
+        if (!$this->errorCallbacks) {
             throw $exception;
         }
     }
@@ -357,7 +361,7 @@ class Launcher implements ProcessInterface
             $exception = $exception->asThrowable();
         }
 
-        if (! $exception instanceof Throwable) {
+        if (!$exception instanceof Throwable) {
             $exception = ProcessorError::fromException($exception);
         }
 

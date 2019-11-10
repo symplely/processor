@@ -20,14 +20,14 @@
     ],
     "require": {
         "php": ">7.1",
-        "opis/closure": "^3.0",
-        "symfony/process": "^4.2"
+        "opis/closure": "^3.4.1",
+        "symfony/process": "^4.3.6"
     },
     "autoload": {
         "files": [
             "Processor/functions.php"
         ],
-        "psr-4": { 
+        "psr-4": {
 			"Async\\Processor\\": "Processor/"
 		}
     },

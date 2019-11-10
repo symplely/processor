@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Async\Processor;
 
 use Throwable;
@@ -25,7 +27,7 @@ class SerializableException
     public function asThrowable(): Throwable
     {
         /** @var Throwable $throwable */
-        $throwable = new $this->class($this->message."\n\n".$this->trace);
+        $throwable = new $this->class($this->message . "\n\n" . $this->trace);
 
         return $throwable;
     }

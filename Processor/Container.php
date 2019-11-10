@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
@@ -8,15 +10,15 @@ try {
     $autoload = $argv[1] ?? null;
     $serializedClosure = $argv[2] ?? null;
 
-    if (! $autoload) {
+    if (!$autoload) {
         throw new \InvalidArgumentException('No autoload provided in child process.');
     }
 
-    if (! \file_exists($autoload)) {
+    if (!\file_exists($autoload)) {
         throw new \InvalidArgumentException("Could not find autoload in child process: {$autoload}");
     }
 
-    if (! $serializedClosure) {
+    if (!$serializedClosure) {
         throw new \InvalidArgumentException('No valid closure was passed to the child process.');
     }
 
@@ -32,9 +34,9 @@ try {
 
     exit(0);
 } catch (\Throwable $exception) {
-	if (!defined('_DS'))
-		define('_DS', DIRECTORY_SEPARATOR);
-    require_once __DIR__._DS.'SerializableException.php';
+    if (!defined('_DS'))
+        define('_DS', DIRECTORY_SEPARATOR);
+    require_once __DIR__ . _DS . 'SerializableException.php';
 
     $output = new SerializableException($exception);
 
