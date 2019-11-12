@@ -224,9 +224,15 @@ class ProcessorTest extends TestCase
             $notFoundError = $error->getMessage();
         });
 
+        if ('\\' === \DIRECTORY_SEPARATOR) {
+            $pathCheck = 'The system cannot find the path specified.';
+        } else {
+            $pathCheck = $executable;
+        }
+
         $process->run();
         $this->assertEquals(false, $result);
-        $this->assertRegExp("/The system cannot find the path specified./", $notFoundError);
+        $this->assertRegExp("%{$pathCheck}%", $notFoundError);
 
         // test with default executable (reset for further tests)
         Processor::phpPath('php');
