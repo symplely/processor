@@ -25,6 +25,9 @@ class Processor
 
     protected static $myPid = null;
 
+    /** @var string */
+    protected static $executable = 'php';
+
     private function __construct()
     { }
 
@@ -69,7 +72,7 @@ class Processor
 
         if (\is_callable($task) && !\is_string($task) && !\is_array($task)) {
             $process = new Process([
-                'php',
+                self::$executable,
                 self::$containerScript,
                 self::$autoload,
                 self::encodeTask($task),
@@ -81,6 +84,14 @@ class Processor
         }
 
         return Launcher::create($process, (int) self::getId(), $timeout);
+    }
+
+    /**
+     * @param string $executable
+     */
+    public static function phpPath(string $executable): void
+    {
+        self::$executable = $executable;
     }
 
     /**

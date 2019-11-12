@@ -21,6 +21,9 @@ include 'vendor/autoload.php';
 
 use Async\Processor\Processor;
 
+// To set the path to PHP executable for child process
+Processor::phpPath('/some/path/version-7.3/bin/php');
+
 $process = \spawn($function, $timeout, $channel)
 // Or
 $process = Processor::create(function () use ($thing) {
@@ -43,7 +46,6 @@ When creating asynchronous processes, you'll get an instance of `ProcessInterfac
 You can add the following event hooks on a process.
 
 ```php
-
 $process = spawn($function, $timeout, $channel)
 // Or
 $process = Processor::create(function () {

@@ -18,7 +18,7 @@ class ProcessorTest extends TestCase
         })->then(function (int $output) use (&$counter) {
             $counter = $output;
         });
-	
+
         await_spawn($process);
         $this->assertTrue($process->isSuccessful());
 
@@ -34,7 +34,7 @@ class ProcessorTest extends TestCase
         })->then(function (int $output) use (&$counter) {
             $counter = $output;
         });
-	
+
         $pause = $process->yielding();
         $this->assertEquals(0, $counter);
 
@@ -114,12 +114,12 @@ class ProcessorTest extends TestCase
     public function testGetOutput()
     {
         $p = Processor::create(function () {
-			$n = 0; 
-			while ($n < 3) { 
-				echo "foo"; 
-				$n++; 
-			}
-		});
+            $n = 0;
+            while ($n < 3) {
+                echo "foo";
+                $n++;
+            }
+        });
 
         $p->run();
         $this->assertEquals(3, preg_match_all('/foo/', $p->getOutput(), $matches));
@@ -128,12 +128,12 @@ class ProcessorTest extends TestCase
     public function testGetErrorOutput()
     {
         $p = spawn(function () {
-			$n = 0; 
-			while ($n < 3) { 
-				file_put_contents('php://stderr', 'ERROR'); 
-				$n++; 
-			}
-		})->catch(function (ProcessorError $error) {
+            $n = 0;
+            while ($n < 3) {
+                file_put_contents('php://stderr', 'ERROR');
+                $n++;
+            }
+        })->catch(function (ProcessorError $error) {
             $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
         });
 
@@ -143,12 +143,12 @@ class ProcessorTest extends TestCase
     public function testGetErrorOutputYield()
     {
         $p = Processor::create(function () {
-			$n = 0; 
-			while ($n < 3) { 
-				file_put_contents('php://stderr', 'ERROR'); 
-				$n++; 
-			}
-		})->catch(function (ProcessorError $error) {
+            $n = 0;
+            while ($n < 3) {
+                file_put_contents('php://stderr', 'ERROR');
+                $n++;
+            }
+        })->catch(function (ProcessorError $error) {
             $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
         });
 
@@ -159,8 +159,8 @@ class ProcessorTest extends TestCase
     public function testRestart()
     {
         $process1 = Processor::create(function () {
-			return getmypid();
-		});
+            return getmypid();
+        });
         $process1->run();
         $process2 = $process1->restart();
 
@@ -173,7 +173,7 @@ class ProcessorTest extends TestCase
         // Ensure that restart returned a new process by check that the output is different
         $this->assertNotEquals($process1->getOutput(), $process2->getOutput());
     }
-	
+
     public function testWaitReturnAfterRunCMD()
     {
         $process = Processor::create('echo foo');
@@ -197,7 +197,7 @@ class ProcessorTest extends TestCase
         $process->run();
         $this->assertTrue($process->isSuccessful());
     }
-	
+
     public function testGetPid()
     {
         $process = Processor::create(function () {
@@ -205,5 +205,48 @@ class ProcessorTest extends TestCase
         })->start();
         $this->assertGreaterThan(0, $process->getPid());
         $process->stop();
+    }
+
+    public function testPhpPathExecutable()
+    {
+        $executable = '/opt/path/that/can/never/exist/for/testing/bin/php';
+        $notFoundError = '';
+        $result = null;
+
+        // test with custom executable
+        Processor::phpPath($executable);
+        $process = Processor::create(function () {
+            return true;
+        })->then(function ($_result) use (&$result) {
+            $result = $_result;
+        })->catch(function ($error) use (&$result, &$notFoundError) {
+            $result = false;
+            $notFoundError = $error->getMessage();
+        });
+
+        $process->run();
+        $this->assertEquals(false, $result);
+        $this->assertRegExp("/The system cannot find the path specified./", $notFoundError);
+
+        // test with default executable (reset for further tests)
+        Processor::phpPath('php');
+        $process = Processor::create(function () {
+            return 'reset';
+        })->then(function ($_result) use (&$result) {
+            $result = $_result;
+        });
+
+        $process->run();
+        $this->assertEquals('reset', $result);
+
+        // test with default executable
+        $process = Processor::create(function () {
+            return 'default';
+        })->then(function ($_result) use (&$result) {
+            $result = $_result;
+        });
+
+        $process->run();
+        $this->assertEquals('default', $result);
     }
 }
