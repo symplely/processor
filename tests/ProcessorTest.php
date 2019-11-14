@@ -255,4 +255,14 @@ class ProcessorTest extends TestCase
         $process->run();
         $this->assertEquals('default', $result);
     }
+
+     public function testLargeOutputs()
+     {
+         $process = Processor::create(function () {
+             return str_repeat('abcd', 1024 * 512);
+         });
+
+         $process->run();
+         $this->assertEquals(str_repeat('abcd', 1024 * 512), $process->getOutput());
+     }
 }
