@@ -6,6 +6,11 @@ namespace Async\Processor;
 
 interface ProcessInterface
 {
+    /**
+     * Gets PHP's process ID
+     *
+     * @return int
+     */
     public function getId(): int;
 
     /**
@@ -52,7 +57,7 @@ interface ProcessInterface
      * @param callable $failCallback
      * @param callable $progressCallback
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null);
 
@@ -61,7 +66,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function done(callable $callback);
 
@@ -70,7 +75,7 @@ interface ProcessInterface
      *
      * @param callable $progressCallback
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function progress(callable $progressCallback);
 
@@ -79,7 +84,7 @@ interface ProcessInterface
      *
      * @param mixed  $update
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function triggerOutput($update = null);
 
@@ -88,7 +93,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function catch(callable $callback);
 
@@ -97,7 +102,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return $this
+     * @return ProcessInterface
      */
     public function timeout(callable $callback);
 
@@ -121,15 +126,45 @@ interface ProcessInterface
 
     public function yieldTimeout();
 
+    /**
+     * Returns the Pid (process identifier), if applicable.
+     *
+     * @return int|null — The process id if running, null otherwise
+     */
     public function getPid(): ?int;
 
+    /**
+     * Stops the running process.
+     *
+     * @return ProcessInterface
+     */
     public function stop();
 
+    /**
+     * Check if the process has timeout (max. runtime).
+     *
+     * @return bool
+     */
     public function isTimedOut(): bool;
 
+    /**
+     * Checks if the process is currently running.
+     *
+     * @return bool true if the process is currently running, false otherwise
+     */
     public function isRunning(): bool;
 
+    /**
+     * Checks if the process is terminated.
+     *
+     * @return bool true if process is terminated, false otherwise
+     */
     public function isTerminated(): bool;
 
+    /**
+     * Checks if the process ended successfully.
+     *
+     * @return bool true if the process ended successfully, false otherwise
+     */
     public function isSuccessful(): bool;
 }
