@@ -114,4 +114,22 @@ interface ProcessInterface
      * @return string The process error output
      */
     public function getErrorOutput();
+
+    public function yieldSuccess();
+
+    public function yieldError();
+
+    public function yieldTimeout();
+
+    public function getPid(): ?int;
+
+    public function stop();
+
+    public function isTimedOut(): bool;
+
+    public function isRunning(): bool;
+
+    public function isTerminated(): bool;
+
+    public function isSuccessful(): bool;
 }

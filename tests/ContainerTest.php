@@ -19,8 +19,8 @@ class ContainerTest extends TestCase
         $serializedClosure = \base64_encode(\Opis\Closure\serialize(new SerializableClosure(function () {
             echo 'child';
         })));
-        $process = new Process("php {$bootstrap} {$autoload} {$serializedClosure}");
-		
+        $process = new Process(explode(" ", "php {$bootstrap} {$autoload} {$serializedClosure}"));
+
         $process->start();
 
         $process->wait();
