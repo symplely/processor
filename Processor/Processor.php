@@ -7,7 +7,7 @@ namespace Async\Processor;
 use Closure;
 use Async\Processor\Launcher;
 use Async\Processor\Process;
-use Async\Processor\ProcessInterface;
+use Async\Processor\LauncherInterface;
 use Opis\Closure\SerializableClosure;
 
 class Processor
@@ -62,9 +62,9 @@ class Processor
      *
      * @param mixed $task
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
-    public static function create($task, int $timeout = 300, $input = null): ProcessInterface
+    public static function create($task, int $timeout = 300, $input = null): LauncherInterface
     {
         if (!self::$isInitialized) {
             self::init();
@@ -99,9 +99,9 @@ class Processor
      *
      * @param string $task daemon
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
-    public static function daemon($task, $channel = null): ProcessInterface
+    public static function daemon($task, $channel = null): LauncherInterface
     {
         if (\is_string($task)) {
             $shadow = (('\\' === \DIRECTORY_SEPARATOR) ? 'start /b ' : 'nohup ') . $task;

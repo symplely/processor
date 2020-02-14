@@ -19,9 +19,9 @@
         }
     ],
     "require": {
-        "php": ">7.1",
+        "php": ">7.2",
         "opis/closure": "^3.5.1",
-        "symfony/process": "^5.0.0"
+        "symfony/process": "^5.0.4"
     },
     "autoload": {
         "files": [

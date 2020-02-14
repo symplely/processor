@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Async\Processor\Processor;
-use Async\Processor\ProcessInterface;
+use Async\Processor\LauncherInterface;
 
 if (!\function_exists('spawn')) {
   /**
@@ -13,14 +13,14 @@ if (!\function_exists('spawn')) {
    * @param int $timeout
    * @param mixed $processChannel
    *
-   * @return ProcessInterface
+   * @return LauncherInterface
    */
-  function spawn($shellCallable, int $timeout = 300, $processChannel = null): ProcessInterface
+  function spawn($shellCallable, int $timeout = 300, $processChannel = null): LauncherInterface
   {
     return Processor::create($shellCallable, $timeout, $processChannel);
   }
 
-  function await_spawn(ProcessInterface $process)
+  function await_spawn(LauncherInterface $process)
   {
     return $process->run();
   }

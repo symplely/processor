@@ -13,12 +13,12 @@ use Throwable;
 use Async\Processor\Process;
 use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
-use Async\Processor\ProcessInterface;
+use Async\Processor\LauncherInterface;
 
 /**
  * Launcher runs a command/script/application/callable in an independent process.
  */
-class Launcher implements ProcessInterface
+class Launcher implements LauncherInterface
 {
     protected $timeout = null;
     protected $process;
@@ -31,6 +31,7 @@ class Launcher implements ProcessInterface
     protected $realTimeOutput;
 
     protected $startTime;
+    protected $showOutput = false;
 
     protected $successCallbacks = [];
     protected $errorCallbacks = [];
@@ -54,7 +55,7 @@ class Launcher implements ProcessInterface
         $this->startTime = \microtime(true);
 
         $this->process->start(function ($type, $buffer) {
-            $this->realTimeOutput .= $buffer;
+            $this->realTimeOutput = $buffer;
         });
 
         $this->pid = $this->process->getPid();
@@ -144,7 +145,19 @@ class Launcher implements ProcessInterface
 
     public function isRunning(): bool
     {
-        return $this->process->isRunning();
+        $isRunning = $this->process->isRunning();
+        if ($isRunning && $this->showOutput) {
+            echo $this->getRealOutput();
+        }
+
+        return $isRunning;
+    }
+
+    public function showOutput(): self
+    {
+        $this->showOutput = true;
+
+        return $this;
     }
 
     public function isSuccessful(): bool

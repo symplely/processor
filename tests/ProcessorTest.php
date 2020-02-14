@@ -98,6 +98,16 @@ class ProcessorTest extends TestCase
         $this->assertTrue($process->isTerminated());
     }
 
+    public function testLiveOutput()
+    {
+        $process = Processor::create(function () {
+            echo 'hello child';
+        });
+        $this->expectOutputRegex('/hello child/');
+        $process->showOutput()->start();;
+        $process->wait();
+    }
+
     public function testGetOutputShell()
     {
         if ('\\' === \DIRECTORY_SEPARATOR) {

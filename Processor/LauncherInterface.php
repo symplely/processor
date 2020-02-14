@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Async\Processor;
 
-interface ProcessInterface
+interface LauncherInterface
 {
     /**
      * Gets PHP's process ID
@@ -16,14 +16,14 @@ interface ProcessInterface
     /**
      * Start the process
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function start();
 
     /**
      * Restart the process
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function restart();
 
@@ -57,7 +57,7 @@ interface ProcessInterface
      * @param callable $failCallback
      * @param callable $progressCallback
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null);
 
@@ -66,7 +66,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function done(callable $callback);
 
@@ -75,7 +75,7 @@ interface ProcessInterface
      *
      * @param callable $progressCallback
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function progress(callable $progressCallback);
 
@@ -84,7 +84,7 @@ interface ProcessInterface
      *
      * @param mixed  $update
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function triggerOutput($update = null);
 
@@ -93,7 +93,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function catch(callable $callback);
 
@@ -102,7 +102,7 @@ interface ProcessInterface
      *
      * @param callable $callback
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function timeout(callable $callback);
 
@@ -136,7 +136,7 @@ interface ProcessInterface
     /**
      * Stops the running process.
      *
-     * @return ProcessInterface
+     * @return LauncherInterface
      */
     public function stop();
 
@@ -167,4 +167,11 @@ interface ProcessInterface
      * @return bool true if the process ended successfully, false otherwise
      */
     public function isSuccessful(): bool;
+
+    /**
+     * Set process to display output of parent process.
+     *
+     * @return LauncherInterface
+     */
+    public function showOutput();
 }
