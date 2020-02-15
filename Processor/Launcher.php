@@ -90,6 +90,14 @@ class Launcher implements LauncherInterface
         return yield from $this->run(true);
     }
 
+    public function display()
+    {
+        if ($this->showOutput) {
+            \printf('%s', $this->getRealOutput());
+            $this->realOutput = null;
+        }
+    }
+
     public function wait($waitTimer = 1000, bool $useYield = false)
     {
         while ($this->isRunning()) {
@@ -101,10 +109,7 @@ class Launcher implements LauncherInterface
                 return $this->triggerTimeout();
             }
 
-            if ($this->showOutput) {
-                \printf('%s', $this->getRealOutput());
-                $this->realOutput = null;
-            }
+            $this->display();
 
             if ($useYield)
                 $this->yieldLiveUpdate($this->getRealOutput());
@@ -153,7 +158,7 @@ class Launcher implements LauncherInterface
         return $this->process->isRunning();
     }
 
-    public function showOutput(): self
+    public function displayOn(): self
     {
         $this->showOutput = true;
 

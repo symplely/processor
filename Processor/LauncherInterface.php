@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Async\Processor;
 
+use Async\Processor\Process;
+
 interface LauncherInterface
 {
     /**
@@ -169,9 +171,22 @@ interface LauncherInterface
     public function isSuccessful(): bool;
 
     /**
-     * Set process to display output of parent process.
+     * Set process to display output of child process.
      *
      * @return LauncherInterface
      */
-    public function showOutput();
+    public function displayOn();
+
+    /**
+     * Display child process output, if set.
+     */
+    public function display();
+
+
+    /**
+     * A PHP process
+     *
+     * @return Process
+     */
+    public function getProcess(): Process;
 }

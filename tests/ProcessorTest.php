@@ -2,7 +2,7 @@
 
 namespace Async\Tests;
 
-use InvalidArgumentException;
+use Async\Processor\Process;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
@@ -86,6 +86,9 @@ class ProcessorTest extends TestCase
         $process = Processor::create(function () {
             usleep(1000);
         });
+
+        $this->assertTrue($process->getProcess() instanceof Process);
+        $this->assertIsNumeric($process->getId());
         $this->assertFalse($process->isRunning());
         $this->assertFalse($process->isTimedOut());
         $this->assertFalse($process->isTerminated());
@@ -105,7 +108,7 @@ class ProcessorTest extends TestCase
             usleep(1000);
         });
         $this->expectOutputString('hello child');
-        $process->showOutput()->run();
+        $process->displayOn()->run();
     }
 
     public function testGetOutputShell()

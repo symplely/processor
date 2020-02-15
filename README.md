@@ -38,11 +38,16 @@ $process = Processor::create(function () use ($thing) {
 \spawn_run($process);
 // Or
 $process->run();
+
+// Second option can be used to set to display child output, default is false
+\spawn_run($process, true);
+// Or
+$process->displayOn()->run();
 ```
 
 ## Event hooks
 
-When creating asynchronous processes, you'll get an instance of `ProcessInterface` returned.
+When creating asynchronous processes, you'll get an instance of `LauncherInterface` returned.
 You can add the following event hooks on a process.
 
 ```php
@@ -84,6 +89,12 @@ There also `->done`, and `->progress` part of `->then()` extended callback metho
         //
     }
 );
+
+// To turn on to display child output.
+->displayOn();
+
+// To display child output, only by third party means once turned on.
+->display();
 
 // Processes can be retried.
 ->restart();

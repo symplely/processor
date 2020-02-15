@@ -20,8 +20,11 @@ if (!\function_exists('spawn')) {
     return Processor::create($shellCallable, $timeout, $processChannel);
   }
 
-  function spawn_run(LauncherInterface $process)
+  /**
+   * Start the process and wait to terminate, and return results in index array.
+   */
+  function spawn_run(LauncherInterface $process, bool $displayOutput = false)
   {
-    return $process->run();
+    return $displayOutput ? $process->displayOn()->run() : $process->run();
   }
 }

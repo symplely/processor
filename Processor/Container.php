@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Async\Processor\Processor;
-use Async\Processor\ProcessorError;
 use Async\Processor\SerializableException;
 
 try {

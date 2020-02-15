@@ -2,8 +2,6 @@
 
 namespace Async\Tests;
 
-use Error;
-use ParseError;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
