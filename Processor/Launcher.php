@@ -55,7 +55,7 @@ class Launcher implements LauncherInterface
         $this->startTime = \microtime(true);
 
         $this->process->start(function ($type, $buffer) {
-            $this->realTimeOutput = $buffer;
+            $this->realTimeOutput .= $buffer;
         });
 
         $this->pid = $this->process->getPid();
@@ -99,6 +99,11 @@ class Launcher implements LauncherInterface
                     return $this->yieldTimeout();
 
                 return $this->triggerTimeout();
+            }
+
+            if ($this->showOutput) {
+                \printf('%s', $this->getRealOutput());
+                $this->realOutput = $this->realTimeOutput = null;
             }
 
             if ($useYield)
@@ -145,12 +150,7 @@ class Launcher implements LauncherInterface
 
     public function isRunning(): bool
     {
-        $isRunning = $this->process->isRunning();
-        if ($isRunning && $this->showOutput) {
-            echo $this->getRealOutput();
-        }
-
-        return $isRunning;
+        return $this->process->isRunning();
     }
 
     public function showOutput(): self
@@ -198,9 +198,13 @@ class Launcher implements LauncherInterface
                 $this->realOutput = $processOutput;
             }
         } elseif ($this->realTimeOutput) {
-            $this->realOutput .= @\unserialize(\base64_decode((string) $this->realTimeOutput));
+            $this->realOutput = @\unserialize(\base64_decode((string) $this->realTimeOutput));
             $this->realTimeOutput = null;
         }
+
+        $this->realOutput = \is_string($this->realOutput)
+            ? \rtrim($this->realOutput, 'Tjs=')
+            : $this->realOutput;
 
         return $this->realOutput;
     }

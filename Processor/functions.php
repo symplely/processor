@@ -20,7 +20,7 @@ if (!\function_exists('spawn')) {
     return Processor::create($shellCallable, $timeout, $processChannel);
   }
 
-  function await_spawn(LauncherInterface $process)
+  function spawn_run(LauncherInterface $process)
   {
     return $process->run();
   }

@@ -18,7 +18,7 @@ class ErrorHandlingTest extends TestCase
                 $this->assertRegExp('/test/', $e->getMessage());
             });
 
-        await_spawn($process);
+        spawn_run($process);
         $this->assertFalse($process->isSuccessful());
         $this->assertTrue($process->isTerminated());
     }
@@ -35,7 +35,7 @@ class ErrorHandlingTest extends TestCase
         $this->assertNull($pause->current());
         $this->assertTrue($process->isTerminated());
     }
- 
+
     public function testIt_handles_stderr_as_processor_error()
     {
         $process = spawn(function () {
@@ -44,7 +44,7 @@ class ErrorHandlingTest extends TestCase
            $this->assertStringContainsString('test', $error->getMessage());
         });
 
-        await_spawn($process);
+        spawn_run($process);
         $this->assertTrue($process->isSuccessful());
         $this->assertEquals('test', $process->getErrorOutput());
         $this->assertNull($process->getOutput());

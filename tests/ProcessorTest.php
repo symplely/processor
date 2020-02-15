@@ -19,7 +19,7 @@ class ProcessorTest extends TestCase
             $counter = $output;
         });
 
-        await_spawn($process);
+        spawn_run($process);
         $this->assertTrue($process->isSuccessful());
 
         $this->assertEquals(2, $counter);
@@ -103,9 +103,8 @@ class ProcessorTest extends TestCase
         $process = Processor::create(function () {
             echo 'hello child';
         });
-        $this->expectOutputRegex('/hello child/');
-        $process->showOutput()->start();;
-        $process->wait();
+        $this->expectOutputString('hello child');
+        $process->showOutput()->run();
     }
 
     public function testGetOutputShell()
@@ -147,7 +146,7 @@ class ProcessorTest extends TestCase
             $this->assertEquals(3, preg_match_all('/ERROR/', $error->getMessage(), $matches));
         });
 
-        await_spawn($p);
+        spawn_run($p);
     }
 
     public function testGetErrorOutputYield()
@@ -266,13 +265,13 @@ class ProcessorTest extends TestCase
         $this->assertEquals('default', $result);
     }
 
-     public function testLargeOutputs()
-     {
-         $process = Processor::create(function () {
-             return str_repeat('abcd', 1024 * 512);
-         });
+    public function testLargeOutputs()
+    {
+        $process = Processor::create(function () {
+            return str_repeat('abcd', 1024 * 512);
+        });
 
-         $process->run();
-         $this->assertEquals(str_repeat('abcd', 1024 * 512), $process->getOutput());
-     }
+        $process->run();
+        $this->assertEquals(str_repeat('abcd', 1024 * 512), $process->getOutput());
+    }
 }
