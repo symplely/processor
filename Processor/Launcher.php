@@ -103,7 +103,7 @@ class Launcher implements LauncherInterface
 
             if ($this->showOutput) {
                 \printf('%s', $this->getRealOutput());
-                $this->realOutput = $this->realTimeOutput = null;
+                $this->realOutput = null;
             }
 
             if ($useYield)
