@@ -102,6 +102,7 @@ class ProcessorTest extends TestCase
     {
         $process = Processor::create(function () {
             echo 'hello child';
+            usleep(1000);
         });
         $this->expectOutputString('hello child');
         $process->showOutput()->run();
