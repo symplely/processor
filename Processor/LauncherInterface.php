@@ -20,14 +20,14 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function start();
+    public function start(): LauncherInterface;
 
     /**
      * Restart the process
      *
      * @return LauncherInterface
      */
-    public function restart();
+    public function restart(): LauncherInterface;
 
     /**
      * Start the process and wait to terminate
@@ -61,7 +61,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null);
+    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null): LauncherInterface;
 
     /**
      * Add handlers to be called when the process is successful
@@ -70,7 +70,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function done(callable $callback);
+    public function done(callable $callback): LauncherInterface;
 
     /**
      * Add handlers to be called when the process progressing output in real time
@@ -79,14 +79,12 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function progress(callable $progressCallback);
+    public function progress(callable $progressCallback): LauncherInterface;
 
     /**
      * Call the progressCallbacks on the process output in real time
      *
      * @param mixed  $update
-     *
-     * @return LauncherInterface
      */
     public function triggerOutput($update = null);
 
@@ -97,7 +95,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function catch(callable $callback);
+    public function catch(callable $callback): LauncherInterface;
 
     /**
      * Add handlers to be called when the process has timed out
@@ -106,7 +104,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function timeout(callable $callback);
+    public function timeout(callable $callback): LauncherInterface;
 
     /**
      * Returns the current output of the process (STDOUT).
@@ -140,7 +138,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function stop();
+    public function stop(): LauncherInterface;
 
     /**
      * Check if the process has timeout (max. runtime).
@@ -175,7 +173,7 @@ interface LauncherInterface
      *
      * @return LauncherInterface
      */
-    public function displayOn();
+    public function displayOn(): LauncherInterface;
 
     /**
      * Display child process output, if set.

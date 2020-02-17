@@ -45,12 +45,12 @@ class Launcher implements LauncherInterface
         $this->id = $id;
     }
 
-    public static function create(Process $process, int $id, int $timeout = 300): self
+    public static function create(Process $process, int $id, int $timeout = 300): LauncherInterface
     {
         return new self($process, $id, $timeout);
     }
 
-    public function start(): self
+    public function start(): LauncherInterface
     {
         $this->startTime = \microtime(true);
 
@@ -63,7 +63,7 @@ class Launcher implements LauncherInterface
         return $this;
     }
 
-    public function restart(): self
+    public function restart(): LauncherInterface
     {
         if ($this->isRunning())
             $this->stop();
@@ -137,7 +137,7 @@ class Launcher implements LauncherInterface
         return $this->triggerError();
     }
 
-    public function stop(): self
+    public function stop(): LauncherInterface
     {
         $this->process->stop();
 
@@ -158,7 +158,7 @@ class Launcher implements LauncherInterface
         return $this->process->isRunning();
     }
 
-    public function displayOn(): self
+    public function displayOn(): LauncherInterface
     {
         $this->showOutput = true;
 
@@ -244,7 +244,7 @@ class Launcher implements LauncherInterface
         return $this->pid;
     }
 
-    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null): self
+    public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null): LauncherInterface
     {
         $this->done($doneCallback);
 
@@ -259,28 +259,28 @@ class Launcher implements LauncherInterface
         return $this;
     }
 
-    public function progress(callable $progressCallback)
+    public function progress(callable $progressCallback): LauncherInterface
     {
         $this->progressCallbacks[] = $progressCallback;
 
         return $this;
     }
 
-    public function done(callable $callback): self
+    public function done(callable $callback): LauncherInterface
     {
         $this->successCallbacks[] = $callback;
 
         return $this;
     }
 
-    public function catch(callable $callback): self
+    public function catch(callable $callback): LauncherInterface
     {
         $this->errorCallbacks[] = $callback;
 
         return $this;
     }
 
-    public function timeout(callable $callback): self
+    public function timeout(callable $callback): LauncherInterface
     {
         $this->timeoutCallbacks[] = $callback;
 
