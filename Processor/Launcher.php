@@ -339,10 +339,7 @@ class Launcher implements LauncherInterface
 
     public function yieldSuccess()
     {
-        if ($this->getRealOutput() && !$this->getErrorOutput()) {
-            $output = $this->realOutput;
-            $this->output = $output;
-        } elseif ($this->errorOutput) {
+        if ($this->getErrorOutput()) {
             return $this->yieldError();
         } else {
             $output = $this->getOutput();
