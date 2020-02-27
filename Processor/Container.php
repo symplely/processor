@@ -25,7 +25,7 @@ try {
 
     $task = Processor::decodeTask($serializedClosure);
 
-    $output = $task();
+    $output = \call_user_func($task);
 
     $serializedOutput = \base64_encode(\serialize($output));
 

@@ -60,7 +60,9 @@ class Processor
     /**
      * Create a sub process for callable, cmd script, or any binary application.
      *
-     * @param mixed $task
+     * @param mixed $task The command to run and its arguments
+     * @param int|float|null $timeout The timeout in seconds or null to disable
+     * @param mixed|null $input The input as stream resource, scalar or \Traversable, or null for no input
      *
      * @return LauncherInterface
      */

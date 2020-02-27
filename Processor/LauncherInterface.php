@@ -83,10 +83,8 @@ interface LauncherInterface
 
     /**
      * Call the progressCallbacks on the process output in real time
-     *
-     * @param mixed  $update
      */
-    public function triggerOutput($update = null);
+    public function triggerOutput($type, $data = null);
 
     /**
      * Add handlers to be called when the process has errors
@@ -125,6 +123,8 @@ interface LauncherInterface
     public function yieldError();
 
     public function yieldTimeout();
+
+    public function yieldLiveUpdate($type, $data = null);
 
     /**
      * Returns the Pid (process identifier), if applicable.
@@ -167,6 +167,19 @@ interface LauncherInterface
      * @return bool true if the process ended successfully, false otherwise
      */
     public function isSuccessful(): bool;
+
+    /**
+     * Sets the input.
+     *
+     * This content will be passed to the underlying process standard input.
+     *
+     * @param string|int|float|bool|resource|\Traversable|null $input The content
+     *
+     * @return LauncherInterface
+     *
+     * @throws LogicException In case the process is running
+     */
+    public function setInput($input);
 
     /**
      * Set process to display output of child process.

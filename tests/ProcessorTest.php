@@ -3,6 +3,7 @@
 namespace Async\Tests;
 
 use Async\Processor\Process;
+use Async\Processor\InputStream;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
@@ -47,6 +48,184 @@ class ProcessorTest extends TestCase
         $this->assertEquals(2, $counter);
     }
 
+    public function testSimpleInputStream()
+    {
+        $input = new InputStream();
+
+        $process = spawn(function () {
+            echo 'ping';
+            echo \fread(\STDIN, 4);
+            echo \fread(\STDIN, 4);
+        }, 300, $input)//->displayOn()
+            ->progress(function () use ($input) {
+                if (!$input->isClosed()) {
+                    $input->write('pang');
+                    $input->write('pong');
+                    $input->close();
+                }
+            });
+
+        $process->setInput($input);
+
+        \spawn_run($process);
+        $this->assertSame('pingpangpong', $process->getOutput());
+    }
+
+    /*
+    public function testInputStreamWithCallable()
+    {
+        $i = 0;
+        $stream = fopen('php://memory', 'w+');
+        $stream = function () use ($stream, &$i) {
+            if ($i < 3) {
+                rewind($stream);
+                fwrite($stream, ++$i);
+                rewind($stream);
+
+                return $stream;
+            }
+
+            return null;
+        };
+
+        $input = new InputStream();
+        $input->onEmpty($stream);
+        $input->write($stream());
+
+        $process = $this->getProcessForCode('echo fread(STDIN, 3);');
+        $process->setInput($input);
+        $process->start(function ($type, $data) use ($input) {
+            $input->close();
+        });
+
+        $process->wait();
+        $this->assertSame('123', $process->getOutput());
+    }
+
+    public function testInputStreamWithGenerator()
+    {
+        $input = new InputStream();
+        $input->onEmpty(function ($input) {
+            yield 'pong';
+            $input->close();
+        });
+
+        $process = $this->getProcessForCode('stream_copy_to_stream(STDIN, STDOUT);');
+        $process->setInput($input);
+        $process->start();
+        $input->write('ping');
+        $process->wait();
+        $this->assertSame('pingpong', $process->getOutput());
+    }
+
+    public function testInputStreamOnEmpty()
+    {
+        $i = 0;
+        $input = new InputStream();
+        $input->onEmpty(function () use (&$i) {
+            ++$i;
+        });
+
+        $process = $this->getProcessForCode('echo 123; echo fread(STDIN, 1); echo 456;');
+        $process->setInput($input);
+        $process->start(function ($type, $data) use ($input) {
+            if ('123' === $data) {
+                $input->close();
+            }
+        });
+        $process->wait();
+
+        $this->assertSame(0, $i, 'InputStream->onEmpty callback should be called only when the input *becomes* empty');
+        $this->assertSame('123456', $process->getOutput());
+    }
+
+    public function testIteratorOutput()
+    {
+        $input = new InputStream();
+
+        $process = $this->getProcessForCode('fwrite(STDOUT, 123); fwrite(STDERR, 234); flush(); usleep(10000); fwrite(STDOUT, fread(STDIN, 3)); fwrite(STDERR, 456);');
+        $process->setInput($input);
+        $process->start();
+        $output = [];
+
+        foreach ($process as $type => $data) {
+            $output[] = [$type, $data];
+            break;
+        }
+        $expectedOutput = [
+            [$process::OUT, '123'],
+        ];
+        $this->assertSame($expectedOutput, $output);
+
+        $input->write(345);
+
+        foreach ($process as $type => $data) {
+            $output[] = [$type, $data];
+        }
+
+        $this->assertSame('', $process->getOutput());
+        $this->assertFalse($process->isRunning());
+
+        $expectedOutput = [
+            [$process::OUT, '123'],
+            [$process::ERR, '234'],
+            [$process::OUT, '345'],
+            [$process::ERR, '456'],
+        ];
+        $this->assertSame($expectedOutput, $output);
+    }
+
+    public function testNonBlockingNorClearingIteratorOutput()
+    {
+        $input = new InputStream();
+
+        $process = $this->getProcessForCode('fwrite(STDOUT, fread(STDIN, 3));');
+        $process->setInput($input);
+        $process->start();
+        $output = [];
+
+        foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
+            $output[] = [$type, $data];
+            break;
+        }
+        $expectedOutput = [
+            [$process::OUT, ''],
+        ];
+        $this->assertSame($expectedOutput, $output);
+
+        $input->write(123);
+
+        foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
+            if ('' !== $data) {
+                $output[] = [$type, $data];
+            }
+        }
+
+        $this->assertSame('123', $process->getOutput());
+        $this->assertFalse($process->isRunning());
+
+        $expectedOutput = [
+            [$process::OUT, ''],
+            [$process::OUT, '123'],
+        ];
+        $this->assertSame($expectedOutput, $output);
+    }
+
+    public function testChainedProcesses()
+    {
+        $p1 = $this->getProcessForCode('fwrite(STDERR, 123); fwrite(STDOUT, 456);');
+        $p2 = $this->getProcessForCode('stream_copy_to_stream(STDIN, STDOUT);');
+        $p2->setInput($p1);
+
+        $p1->start();
+        $p2->run();
+
+        $this->assertSame('123', $p1->getErrorOutput());
+        $this->assertSame('', $p1->getOutput());
+        $this->assertSame('', $p2->getErrorOutput());
+        $this->assertSame('456', $p2->getOutput());
+    }
+    */
     public function testIt_can_handle_timeout()
     {
         $counter = 0;
