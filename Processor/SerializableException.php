@@ -17,6 +17,9 @@ class SerializableException
     /** @var string */
     protected $trace;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __construct(Throwable $exception)
     {
         $this->class = \get_class($exception);

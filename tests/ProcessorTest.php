@@ -56,8 +56,11 @@ class ProcessorTest extends TestCase
             echo 'ping';
             echo \fread(\STDIN, 4);
             echo \fread(\STDIN, 4);
-        }, 300, $input)//->displayOn()
-            ->progress(function () use ($input) {
+        }, 300, $input)
+            ->progress(function ($type, $data) use ($input) {
+                //   if ('out' === $type) {
+                //        print($type);
+                //    } else
                 if (!$input->isClosed()) {
                     $input->write('pang');
                     $input->write('pong');
@@ -67,11 +70,11 @@ class ProcessorTest extends TestCase
 
         $process->setInput($input);
 
+        // $this->expectOutputString('out');
         \spawn_run($process);
         $this->assertSame('pingpangpong', $process->getOutput());
     }
 
-    /*
     public function testInputStreamWithCallable()
     {
         $i = 0;
@@ -91,14 +94,15 @@ class ProcessorTest extends TestCase
         $input = new InputStream();
         $input->onEmpty($stream);
         $input->write($stream());
+        $process = spawn(function () {
+            echo fread(STDIN, 3);
+        }, 10, $input)
+            ->progress(function ($type, $data) use ($input) {
+                $input->close();
+            });
 
-        $process = $this->getProcessForCode('echo fread(STDIN, 3);');
         $process->setInput($input);
-        $process->start(function ($type, $data) use ($input) {
-            $input->close();
-        });
-
-        $process->wait();
+        $process->run();
         $this->assertSame('123', $process->getOutput());
     }
 
@@ -110,7 +114,10 @@ class ProcessorTest extends TestCase
             $input->close();
         });
 
-        $process = $this->getProcessForCode('stream_copy_to_stream(STDIN, STDOUT);');
+        $process = spawn(function () {
+            stream_copy_to_stream(STDIN, STDOUT);
+        }, 10, $input);
+
         $process->setInput($input);
         $process->start();
         $input->write('ping');
@@ -126,14 +133,19 @@ class ProcessorTest extends TestCase
             ++$i;
         });
 
-        $process = $this->getProcessForCode('echo 123; echo fread(STDIN, 1); echo 456;');
+        $process = spawn(function () {
+            echo 123;
+            echo fread(STDIN, 1);
+            echo 456;
+        }, 10, $input)
+            ->progress(function ($type, $data) use ($input) {
+                if ('123' === $data) {
+                    $input->close();
+                }
+            });
+
         $process->setInput($input);
-        $process->start(function ($type, $data) use ($input) {
-            if ('123' === $data) {
-                $input->close();
-            }
-        });
-        $process->wait();
+        $process->run();
 
         $this->assertSame(0, $i, 'InputStream->onEmpty callback should be called only when the input *becomes* empty');
         $this->assertSame('123456', $process->getOutput());
@@ -143,11 +155,24 @@ class ProcessorTest extends TestCase
     {
         $input = new InputStream();
 
-        $process = $this->getProcessForCode('fwrite(STDOUT, 123); fwrite(STDERR, 234); flush(); usleep(10000); fwrite(STDOUT, fread(STDIN, 3)); fwrite(STDERR, 456);');
-        $process->setInput($input);
-        $process->start();
+        $processor = spawn(function () {
+            fwrite(STDOUT, 123);
+            usleep(5000);
+            fwrite(STDERR, 234);
+            flush();
+            usleep(10000);
+            fwrite(
+                STDOUT,
+                fread(STDIN, 3)
+            );
+            fwrite(STDERR, 456);
+        }, 300, $input);
+
+        $processor->setInput($input);
+        $processor->start();
         $output = [];
 
+        $process = $processor->getProcess();
         foreach ($process as $type => $data) {
             $output[] = [$type, $data];
             break;
@@ -160,11 +185,11 @@ class ProcessorTest extends TestCase
         $input->write(345);
 
         foreach ($process as $type => $data) {
-            $output[] = [$type, $data];
+            $output[] = [$type, $processor->cleanUp($data)];
         }
 
         $this->assertSame('', $process->getOutput());
-        $this->assertFalse($process->isRunning());
+        $this->assertFalse($processor->isRunning());
 
         $expectedOutput = [
             [$process::OUT, '123'],
@@ -179,13 +204,17 @@ class ProcessorTest extends TestCase
     {
         $input = new InputStream();
 
-        $process = $this->getProcessForCode('fwrite(STDOUT, fread(STDIN, 3));');
-        $process->setInput($input);
-        $process->start();
+        $processor = spawn(function () {
+            fwrite(STDOUT, fread(STDIN, 3));
+        }, 10, $input);
+
+        $processor->setInput($input);
+        $processor->start();
         $output = [];
 
+        $process = $processor->getProcess();
         foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
-            $output[] = [$type, $data];
+            $output[] = [$type, $processor->cleanUp($data)];
             break;
         }
         $expectedOutput = [
@@ -196,13 +225,13 @@ class ProcessorTest extends TestCase
         $input->write(123);
 
         foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
-            if ('' !== $data) {
-                $output[] = [$type, $data];
+            if ('' !== $processor->cleanUp($data)) {
+                $output[] = [$type, $processor->cleanUp($data)];
             }
         }
 
-        $this->assertSame('123', $process->getOutput());
-        $this->assertFalse($process->isRunning());
+        $this->assertSame('123Tjs=', $process->getOutput());
+        $this->assertFalse($processor->isRunning());
 
         $expectedOutput = [
             [$process::OUT, ''],
@@ -213,19 +242,26 @@ class ProcessorTest extends TestCase
 
     public function testChainedProcesses()
     {
-        $p1 = $this->getProcessForCode('fwrite(STDERR, 123); fwrite(STDOUT, 456);');
-        $p2 = $this->getProcessForCode('stream_copy_to_stream(STDIN, STDOUT);');
-        $p2->setInput($p1);
+        $p1 = spawn(function () {
+            fwrite(STDERR, 123);
+            fwrite(STDOUT, 456);
+        });
+
+        $p2 = spawn(function () {
+            stream_copy_to_stream(STDIN, STDOUT);
+        }, 300, $p1->getProcess());
+
+        $p2->setInput($p1->getProcess());
 
         $p1->start();
         $p2->run();
 
         $this->assertSame('123', $p1->getErrorOutput());
-        $this->assertSame('', $p1->getOutput());
+        $this->assertSame('', $p1->getProcess()->getOutput());
         $this->assertSame('', $p2->getErrorOutput());
         $this->assertSame('456', $p2->getOutput());
     }
-    */
+
     public function testIt_can_handle_timeout()
     {
         $counter = 0;

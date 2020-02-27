@@ -84,7 +84,7 @@ interface LauncherInterface
     /**
      * Call the progressCallbacks on the process output in real time
      */
-    public function triggerOutput($type, $data = null);
+    public function triggerOutput();
 
     /**
      * Add handlers to be called when the process has errors
@@ -105,6 +105,15 @@ interface LauncherInterface
     public function timeout(callable $callback): LauncherInterface;
 
     /**
+     * Remove `Tjs=` if present from the output.
+     *
+     * @param mixed $output
+     *
+     * @return mixed
+     */
+    public function cleanUp($output = null);
+
+    /**
      * Returns the current output of the process (STDOUT).
      *
      * @return string The process output
@@ -123,8 +132,6 @@ interface LauncherInterface
     public function yieldError();
 
     public function yieldTimeout();
-
-    public function yieldLiveUpdate($type, $data = null);
 
     /**
      * Returns the Pid (process identifier), if applicable.

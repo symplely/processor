@@ -111,11 +111,7 @@ class Launcher implements LauncherInterface
                 return $this->triggerTimeout();
             }
 
-            if ($useYield)
-                $this->yieldLiveUpdate($this->realTimeType, $this->realTime($this->realTimeOutput));
-            else {
-                $this->triggerOutput($this->realTimeType, $this->realTime($this->realTimeOutput));
-            }
+            $this->triggerOutput();
 
             \usleep($waitTimer);
         }
@@ -181,6 +177,13 @@ class Launcher implements LauncherInterface
         return $this->process->setInput($input);
     }
 
+    public function cleanUp($output = null)
+    {
+        return \is_string($output)
+                ? \str_replace('Tjs=', '', $output)
+                : $output;
+    }
+
     public function getOutput()
     {
         if (!$this->output) {
@@ -189,8 +192,10 @@ class Launcher implements LauncherInterface
             $this->output = @\unserialize(\base64_decode((string) $processOutput));
 
             if (!$this->output) {
-                $this->errorOutput = $processOutput;
+                $this->errorOutput = $this->cleanUp($processOutput);
             }
+
+            $this->output = $this->cleanUp($this->output);
         }
 
         return $this->output;
@@ -204,13 +209,11 @@ class Launcher implements LauncherInterface
             $this->realTimeOutput = null;
             $this->realOutput = @\unserialize(\base64_decode((string) $processOutput));
             if (!$this->realOutput) {
-                $this->realOutput = $processOutput;
+                $this->realOutput = $this->cleanUp($processOutput);
+            } else {
+                $this->realOutput = $this->cleanUp($this->realOutput);
             }
         }
-
-        $this->realOutput = \is_string($this->realOutput)
-            ? \str_replace('Tjs=', '', $this->realOutput)
-            : $this->realOutput;
 
         return $this->realOutput;
     }
@@ -224,9 +227,8 @@ class Launcher implements LauncherInterface
                 $realOutput = $processOutput;
             }
 
-            $realOutput = \is_string($realOutput)
-            ? \str_replace('Tjs=', '', $realOutput)
-            : $realOutput;
+            $realOutput = $this->cleanUp($realOutput);
+            $this->realOutput = null;
 
             return $realOutput;
         }
@@ -305,10 +307,12 @@ class Launcher implements LauncherInterface
         return $this;
     }
 
-    public function triggerOutput($type, $data = null)
+    public function triggerOutput()
     {
+        $liveType = $this->realTimeType;
+        $liveOutput = $this->realTime($this->realTimeOutput);
         foreach ($this->progressCallbacks as $progressCallback) {
-            $progressCallback($type, $data);
+            $progressCallback($liveType, $liveOutput);
         }
     }
 
@@ -348,20 +352,13 @@ class Launcher implements LauncherInterface
             $callback();
     }
 
-    public function yieldLiveUpdate($type, $data = null)
-    {
-        foreach ($this->progressCallbacks as $progressCallback) {
-            yield $progressCallback($type, $data);
-        }
-    }
-
     public function yieldSuccess()
     {
         if ($this->getErrorOutput()) {
             return $this->yieldError();
         } else {
             $output = $this->getOutput();
-            //$output = !empty($this->output) ? $output : $this->getRealOutput();
+            $output = empty($this->output) ? $this->getRealOutput() : $output;
         }
 
         foreach ($this->successCallbacks as $callback) {

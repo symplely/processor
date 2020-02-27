@@ -28,15 +28,15 @@ class Processor
     /** @var string */
     protected static $executable = 'php';
 
+    /**
+     * @codeCoverageIgnore
+     */
     private function __construct()
     { }
 
     public static function init(string $autoload = null)
     {
         if (!$autoload) {
-            if (!defined('_DS'))
-                define('_DS', DIRECTORY_SEPARATOR);
-
             $existingAutoloadFiles = \array_filter([
                 __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
                 __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
@@ -102,6 +102,8 @@ class Processor
      * @param string $task daemon
      *
      * @return LauncherInterface
+     *
+     * @codeCoverageIgnore
      */
     public static function daemon($task, $channel = null): LauncherInterface
     {
@@ -129,6 +131,10 @@ class Processor
         return \base64_encode(\Opis\Closure\serialize($task));
     }
 
+
+    /**
+     * @codeCoverageIgnore
+     */
     public static function decodeTask(string $task)
     {
         return \Opis\Closure\unserialize(\base64_decode($task));
