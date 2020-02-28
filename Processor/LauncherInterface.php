@@ -9,43 +9,42 @@ use Async\Processor\Process;
 interface LauncherInterface
 {
     /**
-     * Gets PHP's process ID
+     * Gets PHP's process ID.
      *
      * @return int
      */
     public function getId(): int;
 
     /**
-     * Start the process
+     * Start the process.
      *
      * @return LauncherInterface
      */
     public function start(): LauncherInterface;
 
     /**
-     * Restart the process
+     * Restart the process.
      *
      * @return LauncherInterface
      */
     public function restart(): LauncherInterface;
 
     /**
-     * Start the process and wait to terminate
+     * Start the process and wait to terminate.
      *
      * @param bool $useYield - should we use generator callback functions
      */
     public function run(bool $useYield = false);
 
     /**
-     * Return an generator that can start
-     * the process and wait to terminate
+     * Return an generator that can start the process and wait to terminate.
      *
      * @return \Generator
      */
     public function yielding();
 
     /**
-     * Waits for all processes to terminate
+     * Waits for all processes to terminate.
      *
      * @param int $waitTimer - Halt time in micro seconds
      * @param bool $useYield - should we use generator callback functions
@@ -53,7 +52,7 @@ interface LauncherInterface
     public function wait($waitTimer = 1000, bool $useYield = false);
 
     /**
-     * Add handlers to be called when the process is successful, erred or progressing in real time
+     * Add handlers to be called when the process is successful, erred or progressing in real time.
      *
      * @param callable $doneCallback
      * @param callable $failCallback
@@ -64,7 +63,7 @@ interface LauncherInterface
     public function then(callable $doneCallback, callable $failCallback = null, callable $progressCallback = null): LauncherInterface;
 
     /**
-     * Add handlers to be called when the process is successful
+     * Add handlers to be called when the process is successful.
      *
      * @param callable $callback
      *
@@ -73,7 +72,13 @@ interface LauncherInterface
     public function done(callable $callback): LauncherInterface;
 
     /**
-     * Add handlers to be called when the process progressing output in real time
+     * Add handlers to be called when the process progressing, it's producing output.
+     * This can be use as a IPC handler for real time interaction.
+     *
+     * The callback will receive **output type** either(`out` or `err`),
+     * and **the output** in real-time.
+     *
+     * Use: __Channel__ `send()` to write to the standard input of the process.
      *
      * @param callable $progressCallback
      *
@@ -82,12 +87,7 @@ interface LauncherInterface
     public function progress(callable $progressCallback): LauncherInterface;
 
     /**
-     * Call the progressCallbacks on the process output in real time
-     */
-    public function triggerOutput();
-
-    /**
-     * Add handlers to be called when the process has errors
+     * Add handlers to be called when the process has errors.
      *
      * @param callable $callback
      *
@@ -96,7 +96,7 @@ interface LauncherInterface
     public function catch(callable $callback): LauncherInterface;
 
     /**
-     * Add handlers to be called when the process has timed out
+     * Add handlers to be called when the process has timed out.
      *
      * @param callable $callback
      *
@@ -182,6 +182,14 @@ interface LauncherInterface
      */
     public function displayOn(): LauncherInterface;
 
+
+    /**
+     * Stop displaying output of child process.
+     *
+     * @return LauncherInterface
+     */
+    public function displayOff(): LauncherInterface;
+
     /**
      * Display child process output, if set.
      */
@@ -189,7 +197,7 @@ interface LauncherInterface
 
 
     /**
-     * A PHP process
+     * A handle for the PHP process.
      *
      * @return Process
      */

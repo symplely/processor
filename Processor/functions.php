@@ -6,6 +6,9 @@ use Async\Processor\Channel;
 use Async\Processor\Processor;
 use Async\Processor\LauncherInterface;
 
+if (!\defined('_DS'))
+    \define('_DS', \DIRECTORY_SEPARATOR);
+
 if (!\function_exists('spawn')) {
   /**
    * Create an process by shell command or callable.
@@ -30,5 +33,13 @@ if (!\function_exists('spawn')) {
   function spawn_run(LauncherInterface $process, bool $displayOutput = false)
   {
     return $displayOutput ? $process->displayOn()->run() : $process->run();
+  }
+
+  /**
+   * return the output of the process.
+   */
+  function spawn_output(LauncherInterface $process)
+  {
+    return $process->getOutput();
   }
 }

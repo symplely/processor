@@ -45,6 +45,34 @@ $process->run();
 $process->displayOn()->run();
 ```
 
+## Channel - Transfer messages between a Process
+
+```php
+include 'vendor/autoload.php';
+
+use Async\Processor\Channel;
+
+$ipc = new Channel();
+
+$process = spawn(function (Channel $channel) {
+    $channel->write('ping'); // same as echo 'ping' or echo fwrite(STDOUT, 'ping')
+    echo $channel->receive(); // same as echo fgets(STDIN);
+    echo $channel->receive();
+    }, 300, $ipc)
+        ->progress(function ($type, $data) use ($ipc) {
+            if ('ping' === $data) {
+                $ipc->send('pang' . \PHP_EOL);
+            } elseif (!$ipc->isClosed()) {
+                $ipc->send('pong' . \PHP_EOL);
+                $ipc->close();
+            }
+        });
+
+\spawn_run($process);
+
+echo \spawn_output($process); // pingpangpong
+```
+
 ## Event hooks
 
 When creating asynchronous processes, you'll get an instance of `LauncherInterface` returned.
@@ -59,7 +87,7 @@ $process = Processor::create(function () {
         // The third is optional input pipe to pass to subprocess
     }, int $timeout = 300 , $input = null)
     ->then(function ($output) {
-        // On success, `$output` is returned by the process or callable you passed to the queue.
+        // On success, `$output` is returned by the process.
     })
     ->catch(function ($exception) {
         // When an exception is thrown from within a process, it's caught and passed here.
@@ -67,20 +95,18 @@ $process = Processor::create(function () {
     ->timeout(function () {
         // When an time is reached, it's caught and passed here.
     })
-;
+    ->progress(function ($type, $data) {
+        // A IPC like gateway: `$type, $data` is returned by the process progressing, it's producing output.
+        // This can be use as a IPC handler for real time interaction.
+    });
 ```
 
-There also `->done`, and `->progress` part of `->then()` extended callback method.
+There also `->done`, part of `->then()` extended callback method.
 
 ```php
 ->done(function ($result) {
     // On success, `$result` is returned by the process or callable you passed to the queue.
 });
-
-->progress(function ($progress) {
-    // `$progress` returned by the process or callable you passed to the queue.
-});
-
 ->then(function ($resultOutput) {
         //
     }, function ($catchException) {
@@ -92,6 +118,9 @@ There also `->done`, and `->progress` part of `->then()` extended callback metho
 
 // To turn on to display child output.
 ->displayOn();
+
+// Stop displaying child output.
+->displayOff();
 
 // To display child output, only by third party means once turned on.
 ->display();

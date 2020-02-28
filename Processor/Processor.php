@@ -38,12 +38,12 @@ class Processor
     {
         if (!$autoload) {
             $existingAutoloadFiles = \array_filter([
-                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
-                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'autoload.php',
-                __DIR__ . _DS . '..' . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
-                __DIR__ . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
-                __DIR__ . _DS . 'vendor' . _DS . 'autoload.php',
-                __DIR__ . _DS . '..' . _DS . '..' . _DS . '..' . _DS . 'vendor' . _DS . 'autoload.php',
+                __DIR__ . \_DS . '..' . \_DS . '..' . \_DS . '..' . \_DS . '..' . \_DS . 'autoload.php',
+                __DIR__ . \_DS . '..' . \_DS . '..' . \_DS . '..' . \_DS . 'autoload.php',
+                __DIR__ . \_DS . '..' . \_DS . '..' . \_DS . 'vendor' . \_DS . 'autoload.php',
+                __DIR__ . \_DS . '..' . \_DS . 'vendor' . \_DS . 'autoload.php',
+                __DIR__ . \_DS . 'vendor' . \_DS . 'autoload.php',
+                __DIR__ . \_DS . '..' . \_DS . '..' . \_DS . '..' . \_DS . 'vendor' . \_DS . 'autoload.php',
             ], function (string $path) {
                 return \file_exists($path);
             });
@@ -52,7 +52,7 @@ class Processor
         }
 
         self::$autoload = $autoload;
-        self::$containerScript = __DIR__ . DIRECTORY_SEPARATOR . 'Container.php';
+        self::$containerScript = __DIR__ . \_DS . 'Container.php';
 
         self::$isInitialized = true;
     }

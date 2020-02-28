@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Async\Processor;
 
+use Async\Processor\Process;
+
 /**
  * A channel is used to transfer messages between a `Process` as a IPC pipe.
  *
@@ -18,7 +20,7 @@ class Channel implements \IteratorAggregate
 {
     /**
      * @var callable|null
-     * */
+     */
     private $whenDrained = null;
     private $input = [];
     private $open = true;
@@ -67,6 +69,29 @@ class Channel implements \IteratorAggregate
     }
 
     /**
+     * Wait to receive a message from the channel `STDIN`.
+     *
+     * @param int $length will read to `EOL` if not set.
+     */
+    public function receive(int $length = 0)
+    {
+        if ($length === 0)
+            return \trim(\fgets(\STDIN));
+
+        return \fread(\STDIN, $length);
+    }
+
+    /**
+     * Write a message to the channel `STDOUT`.
+     *
+     * @param mixed $message
+     */
+    public function write($message)
+    {
+        return \fwrite(\STDOUT, $message);
+    }
+
+    /**
      * @return \Traversable
      */
     public function getIterator()
@@ -86,7 +111,8 @@ class Channel implements \IteratorAggregate
                 yield $current;
             }
 
-            if (!$this->input && $this->open && null !== $whenDrained = $this->whenDrained) {
+            $whenDrained = $this->whenDrained;
+            if (!$this->input && $this->open && (null !== $whenDrained)) {
                 $this->send($whenDrained($this));
             }
         }
@@ -102,7 +128,7 @@ class Channel implements \IteratorAggregate
      *
      * @throws \InvalidArgumentException In case the input is not valid
      */
-    protected static function validateInput(string $caller, $input)
+    public static function validateInput(string $caller, $input)
     {
         if (null !== $input) {
             if (\is_resource($input)) {

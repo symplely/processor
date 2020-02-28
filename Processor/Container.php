@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Async\Processor\Channel;
 use Async\Processor\Processor;
 use Async\Processor\SerializableException;
 
@@ -25,7 +26,7 @@ try {
 
     $task = Processor::decodeTask($serializedClosure);
 
-    $output = \call_user_func($task);
+    $output = \call_user_func($task, new Channel);
 
     $serializedOutput = \base64_encode(\serialize($output));
 
@@ -33,9 +34,7 @@ try {
 
     exit(0);
 } catch (\Throwable $exception) {
-    if (!defined('_DS'))
-        define('_DS', DIRECTORY_SEPARATOR);
-    require_once __DIR__ . _DS . 'SerializableException.php';
+    require_once __DIR__ . \_DS . 'SerializableException.php';
 
     $output = new SerializableException($exception);
 

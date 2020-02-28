@@ -59,7 +59,7 @@ class Launcher implements LauncherInterface
             $this->realTimeType = $type;
             $this->realTimeOutput .= $buffer;
             $this->display($buffer);
-            $this->triggerOutput();
+            $this->triggerProgress($buffer);
         });
 
         $this->pid = $this->process->getPid();
@@ -157,6 +157,13 @@ class Launcher implements LauncherInterface
     public function displayOn(): LauncherInterface
     {
         $this->showOutput = true;
+
+        return $this;
+    }
+
+    public function displayOff(): LauncherInterface
+    {
+        $this->showOutput = false;
 
         return $this;
     }
@@ -301,11 +308,14 @@ class Launcher implements LauncherInterface
         return $this;
     }
 
-    public function triggerOutput()
+    /**
+     * Call the progressCallbacks on the process output in real time.
+     */
+    public function triggerProgress($buffer)
     {
         if (\count($this->progressCallbacks) > 0) {
             $liveType = $this->realTimeType;
-            $liveOutput = $this->realTime($this->realTimeOutput);
+            $liveOutput = $this->realTime($buffer);
             foreach ($this->progressCallbacks as $progressCallback) {
                 $progressCallback($liveType, $liveOutput);
                 $this->realOutput = null;

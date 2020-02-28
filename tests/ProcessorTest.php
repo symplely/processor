@@ -3,7 +3,6 @@
 namespace Async\Tests;
 
 use Async\Processor\Process;
-use Async\Processor\Channel;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
@@ -46,190 +45,6 @@ class ProcessorTest extends TestCase
         $this->assertTrue($process->isSuccessful());
 
         $this->assertEquals(2, $counter);
-    }
-
-    public function testSimpleChannel()
-    {
-        $input = new Channel();
-
-        $process = spawn(function () {
-            echo 'ping';
-            usleep(20000);
-            echo \fread(\STDIN, 4);
-            echo \fread(\STDIN, 4);
-        }, 300, $input)
-            ->progress(function ($type, $data) use ($input) {
-                if ('ping' === $data) {
-                    $input->send('pang');
-                } elseif (!$input->isClosed()) {
-                    $input->send('pong');
-                    $input->close();
-                }
-            });
-
-        // $this->expectOutputString('out');
-        \spawn_run($process);
-        $this->assertSame('pingpangpong', $process->getOutput());
-    }
-
-    public function testChannelWithCallable()
-    {
-        $i = 0;
-        $stream = fopen('php://memory', 'w+');
-        $stream = function () use ($stream, &$i) {
-            if ($i < 3) {
-                rewind($stream);
-                fwrite($stream, ++$i);
-                rewind($stream);
-
-                return $stream;
-            }
-
-            return null;
-        };
-
-        $input = new Channel();
-        $input->then($stream);
-        $input->send($stream());
-        $process = spawn(function () {
-            echo fread(STDIN, 3);
-        }, 10, $input)
-            ->progress(function ($type, $data) use ($input) {
-                $input->close();
-            });
-
-        $process->run();
-        $this->assertSame('123', $process->getOutput());
-    }
-
-    public function testChannelWithGenerator()
-    {
-        $input = new Channel();
-        $input->then(function ($input) {
-            yield 'pong';
-            $input->close();
-        });
-
-        $process = spawn(function () {
-            stream_copy_to_stream(STDIN, STDOUT);
-        }, 10, $input);
-
-        $process->start();
-        $input->send('ping');
-        $process->wait();
-        $this->assertSame('pingpong', $process->getOutput());
-    }
-
-    public function testChannelThen()
-    {
-        $i = 0;
-        $input = new Channel();
-        $input->then(function () use (&$i) {
-            ++$i;
-        });
-
-        $process = spawn(function () {
-            echo 123;
-            echo fread(STDIN, 1);
-            echo 456;
-        }, 10, $input)
-            ->progress(function ($type, $data) use ($input) {
-                if ('123' === $data) {
-                    $input->close();
-                }
-            });
-
-        $process->run();
-
-        $this->assertSame(0, $i, 'Channel->then callback should be called only when the input *becomes* empty');
-        $this->assertSame('123456', $process->getOutput());
-    }
-
-    public function testIteratorOutput()
-    {
-        $input = new Channel();
-
-        $processor = spawn(function () {
-            fwrite(STDOUT, 123);
-            usleep(5000);
-            fwrite(STDERR, 234);
-            flush();
-            usleep(10000);
-            fwrite(
-                STDOUT,
-                fread(STDIN, 3)
-            );
-            fwrite(STDERR, 456);
-        }, 300, $input);
-
-        $processor->start();
-        $output = [];
-
-        $process = $processor->getProcess();
-        foreach ($process as $type => $data) {
-            $output[] = [$type, $data];
-            break;
-        }
-        $expectedOutput = [
-            [$process::OUT, '123'],
-        ];
-        $this->assertSame($expectedOutput, $output);
-
-        $input->send(345);
-
-        foreach ($process as $type => $data) {
-            $output[] = [$type, $processor->cleanUp($data)];
-        }
-
-        $this->assertSame('', $process->getOutput());
-        $this->assertFalse($processor->isRunning());
-
-        $expectedOutput = [
-            [$process::OUT, '123'],
-            [$process::ERR, '234'],
-            [$process::OUT, '345'],
-            [$process::ERR, '456'],
-        ];
-        $this->assertSame($expectedOutput, $output);
-    }
-
-    public function testNonBlockingNorClearingIteratorOutput()
-    {
-        $input = new Channel();
-
-        $processor = spawn(function () {
-            fwrite(STDOUT, fread(STDIN, 3));
-        }, 10, $input);
-
-        $processor->start();
-        $output = [];
-
-        $process = $processor->getProcess();
-        foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
-            $output[] = [$type, $processor->cleanUp($data)];
-            break;
-        }
-        $expectedOutput = [
-            [$process::OUT, ''],
-        ];
-        $this->assertSame($expectedOutput, $output);
-
-        $input->send(123);
-
-        foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
-            if ('' !== $processor->cleanUp($data)) {
-                $output[] = [$type, $processor->cleanUp($data)];
-            }
-        }
-
-        $this->assertSame('123Tjs=', $process->getOutput());
-        $this->assertFalse($processor->isRunning());
-
-        $expectedOutput = [
-            [$process::OUT, ''],
-            [$process::OUT, '123'],
-        ];
-        $this->assertSame($expectedOutput, $output);
     }
 
     public function testChainedProcesses()
@@ -379,10 +194,13 @@ class ProcessorTest extends TestCase
         $process1 = Processor::create(function () {
             return getmypid();
         });
-        $process1->run();
+
+        $this->expectOutputRegex('/[\d]/');
+        $process1->displayOn()->run();
         $process2 = $process1->restart();
 
-        $process2->wait(); // wait for output
+        $this->expectOutputRegex('//');
+        $process2->displayOff()->wait(); // wait for output
 
         // Ensure that both processed finished and the output is numeric
         $this->assertFalse($process1->isRunning());
