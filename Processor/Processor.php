@@ -84,7 +84,9 @@ class Processor
         } elseif (\is_string($task)) {
             $process = Process::fromShellCommandline($task, null, null, $input, $timeout);
         } else {
+            // @codeCoverageIgnoreStart
             $process = new Process($task, null, null, $input, $timeout);
+            // @codeCoverageIgnoreEnd
         }
 
         return Launcher::create($process, (int) self::getId(), $timeout);

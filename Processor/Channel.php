@@ -62,7 +62,9 @@ class Channel implements \IteratorAggregate
         }
 
         if ($this->isClosed()) {
+            // @codeCoverageIgnoreStart
             throw new \RuntimeException(\sprintf('%s is closed', static::class));
+            // @codeCoverageIgnoreEnd
         }
 
         $this->input[] = self::validateInput(__METHOD__, $message);
@@ -72,6 +74,8 @@ class Channel implements \IteratorAggregate
      * Wait to receive a message from the channel `STDIN`.
      *
      * @param int $length will read to `EOL` if not set.
+     *
+     * @codeCoverageIgnore
      */
     public function receive(int $length = 0)
     {
@@ -85,6 +89,8 @@ class Channel implements \IteratorAggregate
      * Write a message to the channel `STDOUT`.
      *
      * @param mixed $message
+     *
+     * @codeCoverageIgnore
      */
     public function write($message)
     {
