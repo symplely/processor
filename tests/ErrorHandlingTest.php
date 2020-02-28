@@ -60,6 +60,19 @@ class ErrorHandlingTest extends TestCase
         $process->run();
     }
 
+    public function testIt_throws_the_exception_if_no_catch_callback_yield()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageRegExp('/test/');
+
+        $process = Processor::create(function () {
+            throw new \Exception('test');
+        });
+
+        $pause = $process->yielding();
+        $this->assertNull($pause->current());
+    }
+
     public function testIt_throws_fatal_errors()
     {
         $this->expectException(\Error::class);

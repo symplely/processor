@@ -59,6 +59,7 @@ class Launcher implements LauncherInterface
             $this->realTimeType = $type;
             $this->realTimeOutput .= $buffer;
             $this->display($buffer);
+            $this->triggerOutput();
         });
 
         $this->pid = $this->process->getPid();
@@ -110,8 +111,6 @@ class Launcher implements LauncherInterface
 
                 return $this->triggerTimeout();
             }
-
-            $this->triggerOutput();
 
             \usleep($waitTimer);
         }
@@ -170,11 +169,6 @@ class Launcher implements LauncherInterface
     public function isTerminated(): bool
     {
         return $this->process->isTerminated();
-    }
-
-    public function setInput($input)
-    {
-        return $this->process->setInput($input);
     }
 
     public function cleanUp($output = null)
@@ -309,10 +303,13 @@ class Launcher implements LauncherInterface
 
     public function triggerOutput()
     {
-        $liveType = $this->realTimeType;
-        $liveOutput = $this->realTime($this->realTimeOutput);
-        foreach ($this->progressCallbacks as $progressCallback) {
-            $progressCallback($liveType, $liveOutput);
+        if (\count($this->progressCallbacks) > 0) {
+            $liveType = $this->realTimeType;
+            $liveOutput = $this->realTime($this->realTimeOutput);
+            foreach ($this->progressCallbacks as $progressCallback) {
+                $progressCallback($liveType, $liveOutput);
+                $this->realOutput = null;
+            }
         }
     }
 

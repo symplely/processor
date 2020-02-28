@@ -62,9 +62,11 @@ class Processor
      *
      * @param mixed $task The command to run and its arguments
      * @param int|float|null $timeout The timeout in seconds or null to disable
-     * @param mixed|null $input The input as stream resource, scalar or \Traversable, or null for no input
+     * @param mixed|null $input Set the input content as `stream`, `resource`, `scalar`, `Traversable`, or `null` for no input
+     * - The content will be passed to the underlying process standard input.
      *
      * @return LauncherInterface
+     * @throws LogicException In case the process is running
      */
     public static function create($task, int $timeout = 300, $input = null): LauncherInterface
     {

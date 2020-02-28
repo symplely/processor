@@ -176,19 +176,6 @@ interface LauncherInterface
     public function isSuccessful(): bool;
 
     /**
-     * Sets the input.
-     *
-     * This content will be passed to the underlying process standard input.
-     *
-     * @param string|int|float|bool|resource|\Traversable|null $input The content
-     *
-     * @return LauncherInterface
-     *
-     * @throws LogicException In case the process is running
-     */
-    public function setInput($input);
-
-    /**
      * Set process to display output of child process.
      *
      * @return LauncherInterface

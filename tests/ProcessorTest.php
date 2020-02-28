@@ -3,7 +3,7 @@
 namespace Async\Tests;
 
 use Async\Processor\Process;
-use Async\Processor\InputStream;
+use Async\Processor\Channel;
 use Async\Processor\Processor;
 use Async\Processor\ProcessorError;
 use PHPUnit\Framework\TestCase;
@@ -48,34 +48,31 @@ class ProcessorTest extends TestCase
         $this->assertEquals(2, $counter);
     }
 
-    public function testSimpleInputStream()
+    public function testSimpleChannel()
     {
-        $input = new InputStream();
+        $input = new Channel();
 
         $process = spawn(function () {
             echo 'ping';
+            usleep(20000);
             echo \fread(\STDIN, 4);
             echo \fread(\STDIN, 4);
         }, 300, $input)
             ->progress(function ($type, $data) use ($input) {
-                //   if ('out' === $type) {
-                //        print($type);
-                //    } else
-                if (!$input->isClosed()) {
-                    $input->write('pang');
-                    $input->write('pong');
+                if ('ping' === $data) {
+                    $input->send('pang');
+                } elseif (!$input->isClosed()) {
+                    $input->send('pong');
                     $input->close();
                 }
             });
-
-        $process->setInput($input);
 
         // $this->expectOutputString('out');
         \spawn_run($process);
         $this->assertSame('pingpangpong', $process->getOutput());
     }
 
-    public function testInputStreamWithCallable()
+    public function testChannelWithCallable()
     {
         $i = 0;
         $stream = fopen('php://memory', 'w+');
@@ -91,9 +88,9 @@ class ProcessorTest extends TestCase
             return null;
         };
 
-        $input = new InputStream();
-        $input->onEmpty($stream);
-        $input->write($stream());
+        $input = new Channel();
+        $input->then($stream);
+        $input->send($stream());
         $process = spawn(function () {
             echo fread(STDIN, 3);
         }, 10, $input)
@@ -101,15 +98,14 @@ class ProcessorTest extends TestCase
                 $input->close();
             });
 
-        $process->setInput($input);
         $process->run();
         $this->assertSame('123', $process->getOutput());
     }
 
-    public function testInputStreamWithGenerator()
+    public function testChannelWithGenerator()
     {
-        $input = new InputStream();
-        $input->onEmpty(function ($input) {
+        $input = new Channel();
+        $input->then(function ($input) {
             yield 'pong';
             $input->close();
         });
@@ -118,18 +114,17 @@ class ProcessorTest extends TestCase
             stream_copy_to_stream(STDIN, STDOUT);
         }, 10, $input);
 
-        $process->setInput($input);
         $process->start();
-        $input->write('ping');
+        $input->send('ping');
         $process->wait();
         $this->assertSame('pingpong', $process->getOutput());
     }
 
-    public function testInputStreamOnEmpty()
+    public function testChannelThen()
     {
         $i = 0;
-        $input = new InputStream();
-        $input->onEmpty(function () use (&$i) {
+        $input = new Channel();
+        $input->then(function () use (&$i) {
             ++$i;
         });
 
@@ -144,16 +139,15 @@ class ProcessorTest extends TestCase
                 }
             });
 
-        $process->setInput($input);
         $process->run();
 
-        $this->assertSame(0, $i, 'InputStream->onEmpty callback should be called only when the input *becomes* empty');
+        $this->assertSame(0, $i, 'Channel->then callback should be called only when the input *becomes* empty');
         $this->assertSame('123456', $process->getOutput());
     }
 
     public function testIteratorOutput()
     {
-        $input = new InputStream();
+        $input = new Channel();
 
         $processor = spawn(function () {
             fwrite(STDOUT, 123);
@@ -168,7 +162,6 @@ class ProcessorTest extends TestCase
             fwrite(STDERR, 456);
         }, 300, $input);
 
-        $processor->setInput($input);
         $processor->start();
         $output = [];
 
@@ -182,7 +175,7 @@ class ProcessorTest extends TestCase
         ];
         $this->assertSame($expectedOutput, $output);
 
-        $input->write(345);
+        $input->send(345);
 
         foreach ($process as $type => $data) {
             $output[] = [$type, $processor->cleanUp($data)];
@@ -202,13 +195,12 @@ class ProcessorTest extends TestCase
 
     public function testNonBlockingNorClearingIteratorOutput()
     {
-        $input = new InputStream();
+        $input = new Channel();
 
         $processor = spawn(function () {
             fwrite(STDOUT, fread(STDIN, 3));
         }, 10, $input);
 
-        $processor->setInput($input);
         $processor->start();
         $output = [];
 
@@ -222,7 +214,7 @@ class ProcessorTest extends TestCase
         ];
         $this->assertSame($expectedOutput, $output);
 
-        $input->write(123);
+        $input->send(123);
 
         foreach ($process->getIterator($process::ITER_NON_BLOCKING | $process::ITER_KEEP_OUTPUT) as $type => $data) {
             if ('' !== $processor->cleanUp($data)) {
@@ -250,8 +242,6 @@ class ProcessorTest extends TestCase
         $p2 = spawn(function () {
             stream_copy_to_stream(STDIN, STDOUT);
         }, 300, $p1->getProcess());
-
-        $p2->setInput($p1->getProcess());
 
         $p1->start();
         $p2->run();
