@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace Async\Processor;
 
 use Async\Processor\Process;
+use Async\Processor\ChannelInterface;
 
 /**
  * A channel is used to transfer messages between a `Process` as a IPC pipe.
  *
- * Provides a way to continuously write to the input of a Process until the channel is closed.
- *
- * Send and receive operations are (async) blocking by default, they can be used
- * to synchronize tasks.
- *
  * @author Nicolas Grekas <p@tchwork.com>
  */
-class Channel implements \IteratorAggregate
+class Channel implements ChannelInterface
 {
     /**
      * @var callable|null
@@ -26,58 +22,62 @@ class Channel implements \IteratorAggregate
     private $open = true;
 
     /**
-     * Sets a callback that is called when the channel write buffer becomes drained.
+     * IPC handle
+     *
+     * @var Object
      */
-    public function then(callable $whenDrained = null)
+    protected $channel = null;
+
+    public function setup(Object $handle): ChannelInterface
+    {
+        $this->channel = $handle;
+
+        return $this;
+    }
+
+    public function then(callable $whenDrained = null): ChannelInterface
     {
         $this->whenDrained = $whenDrained;
+
+        return $this;
     }
 
-    /**
-     * Close the channel.
-     */
-    public function close(): void
+    public function close(): ChannelInterface
     {
         $this->open = false;
+
+        return $this;
     }
 
-    /**
-     * Check if the channel has been closed yet.
-     */
     public function isClosed(): bool
     {
         return !$this->open;
     }
 
-    /**
-     * Send a message into the IPC channel.
-     *
-     * @param resource|string|int|float|bool|\Traversable|null $message The input message
-     * @throws \RuntimeException When attempting to send a message into a closed channel.
-     */
-    public function send($message)
+    public function send($message): ChannelInterface
     {
         if (null === $message) {
-            return;
+            return $this;
         }
 
         if ($this->isClosed()) {
-            // @codeCoverageIgnoreStart
             throw new \RuntimeException(\sprintf('%s is closed', static::class));
-            // @codeCoverageIgnoreEnd
         }
 
         $this->input[] = self::validateInput(__METHOD__, $message);
+
+        return $this;
+    }
+
+    public function receive()
+    {
+        return $this->channel->getOutput();
     }
 
     /**
-     * Wait to receive a message from the channel `STDIN`.
-     *
-     * @param int $length will read to `EOL` if not set.
-     *
      * @codeCoverageIgnore
      */
-    public function receive(int $length = 0)
+    public function read(int $length = 0): string
     {
         if ($length === 0)
             return \trim(\fgets(\STDIN));
@@ -86,20 +86,29 @@ class Channel implements \IteratorAggregate
     }
 
     /**
-     * Write a message to the channel `STDOUT`.
-     *
-     * @param mixed $message
-     *
      * @codeCoverageIgnore
      */
-    public function write($message)
+    public function write($message): int
     {
-        return \fwrite(\STDOUT, $message);
+        return \fwrite(\STDOUT, (string) $message);
     }
 
     /**
-     * @return \Traversable
+     * @codeCoverageIgnore
      */
+    public function error($message): int
+    {
+        return \fwrite(\STDERR, (string) $message);
+    }
+
+    /**
+     * @codeCoverageIgnore
+     */
+    public function passthru(): int
+    {
+        return \stream_copy_to_stream(\STDIN, \STDOUT);
+    }
+
     public function getIterator()
     {
         $this->open = true;
@@ -134,21 +143,26 @@ class Channel implements \IteratorAggregate
      *
      * @throws \InvalidArgumentException In case the input is not valid
      */
-    public static function validateInput(string $caller, $input)
+    protected static function validateInput(string $caller, $input)
     {
         if (null !== $input) {
             if (\is_resource($input)) {
                 return $input;
             }
+
             if (\is_string($input)) {
                 return $input;
             }
+
             if (\is_scalar($input)) {
                 return (string) $input;
             }
+
+            // @codeCoverageIgnoreStart
             if ($input instanceof Process) {
                 return $input->getIterator($input::ITER_SKIP_ERR);
             }
+
             if ($input instanceof \Iterator) {
                 return $input;
             }
@@ -160,5 +174,6 @@ class Channel implements \IteratorAggregate
         }
 
         return $input;
+        // @codeCoverageIgnoreEnd
     }
 }

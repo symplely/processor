@@ -51,26 +51,30 @@ $process->displayOn()->run();
 include 'vendor/autoload.php';
 
 use Async\Processor\Channel;
+use Async\Processor\ChannelInterface;
 
 $ipc = new Channel();
 
-$process = spawn(function (Channel $channel) {
+$process = spawn(function (ChannelInterface $channel) {
     $channel->write('ping'); // same as echo 'ping' or echo fwrite(STDOUT, 'ping')
-    echo $channel->receive(); // same as echo fgets(STDIN);
-    echo $channel->receive();
+    echo $channel->read(); // same as echo fgets(STDIN);
+    echo $channel->read();
     }, 300, $ipc)
         ->progress(function ($type, $data) use ($ipc) {
             if ('ping' === $data) {
                 $ipc->send('pang' . \PHP_EOL);
             } elseif (!$ipc->isClosed()) {
                 $ipc->send('pong' . \PHP_EOL);
-                $ipc->close();
+                    ->close();
             }
         });
 
+$ipc->setup($process)
 \spawn_run($process);
 
 echo \spawn_output($process); // pingpangpong
+// Or
+echo $ipc->receive(); // pingpangpong
 ```
 
 ## Event hooks

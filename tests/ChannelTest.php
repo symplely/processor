@@ -3,6 +3,7 @@
 namespace Async\Tests;
 
 use Async\Processor\Channel;
+use Async\Processor\ChannelInterface;
 use PHPUnit\Framework\TestCase;
 
 class ChannelTest extends TestCase
@@ -11,26 +12,48 @@ class ChannelTest extends TestCase
     {
         $ipc = new Channel();
 
-        $process = \spawn(function (Channel $channel) {
+        $process = \spawn(function (ChannelInterface $channel) {
             $channel->write('ping');
             \usleep(1000);
-            echo $channel->receive();
-            echo $channel->receive();
+            echo $channel->read();
+            echo $channel->read();
         }, 10, $ipc)
             ->progress(
                 function ($type, $data) use ($ipc) {
                     if ('ping' === $data) {
                         $ipc->send('pang' . \PHP_EOL);
                     } elseif (!$ipc->isClosed()) {
-                        $ipc->send('pong' . \PHP_EOL);
-                        $ipc->close();
+                        $ipc->send('pong' . \PHP_EOL)
+                            ->close();
                     }
                 }
             );
 
-        // $this->expectOutputString('out');
+        $ipc->setup($process);
         \spawn_run($process);
-        $this->assertSame('pingpangpong', \spawn_output($process));
+        $this->assertSame('pingpangpong', $ipc->receive());
+    }
+
+    public function testSimpleChannelError()
+    {
+        $ipc = new Channel();
+
+        $process = \spawn(function (ChannelInterface $channel) {
+            $channel->write('ping');
+            \usleep(1000);
+            echo $channel->read();
+        }, 10, $ipc)
+            ->progress(
+                function ($type, $data) use ($ipc) {
+                    if ('ping' === $data) {
+                        $ipc->close()
+                        ->send('pang' . \PHP_EOL);
+                    }
+                }
+            );
+
+        $this->expectException(\RuntimeException::class);
+        \spawn_run($process);
     }
 
     public function testChannelWithCallable()
@@ -50,17 +73,17 @@ class ChannelTest extends TestCase
         };
 
         $input = new Channel();
-        $input->then($stream);
-        $input->send($stream());
-        $process = spawn(function () {
-            echo fread(STDIN, 3);
+        $input->then($stream)
+            ->send($stream());
+        $process = spawn(function (ChannelInterface $ipc) {
+            echo $ipc->read(3);
         }, 10, $input)
             ->progress(function ($type, $data) use ($input) {
                 $input->close();
             });
 
         $process->run();
-        $this->assertSame('123', $process->getOutput());
+        $this->assertSame('123', \spawn_output($process));
     }
 
     public function testChannelWithGenerator()
@@ -71,8 +94,8 @@ class ChannelTest extends TestCase
             $input->close();
         });
 
-        $process = spawn(function () {
-            stream_copy_to_stream(STDIN, STDOUT);
+        $process = spawn(function (ChannelInterface $ipc) {
+            $ipc->passthru();
         }, 10, $input);
 
         $process->start();
@@ -110,17 +133,14 @@ class ChannelTest extends TestCase
     {
         $input = new Channel();
 
-        $processor = spawn(function () {
-            fwrite(STDOUT, 123);
+        $processor = spawn(function (ChannelInterface $ipc) {
+            $ipc->write(123);
             usleep(5000);
-            fwrite(STDERR, 234);
+            $ipc->error(234);
             flush();
             usleep(10000);
-            fwrite(
-                STDOUT,
-                fread(STDIN, 3)
-            );
-            fwrite(STDERR, 456);
+            $ipc->write($ipc->read(3));
+            $ipc->error(456);
         }, 300, $input);
 
         $processor->start();
@@ -158,8 +178,8 @@ class ChannelTest extends TestCase
     {
         $input = new Channel();
 
-        $processor = spawn(function () {
-            fwrite(STDOUT, fread(STDIN, 3));
+        $processor = spawn(function (ChannelInterface $ipc) {
+            $ipc->write($ipc->read(3));
         }, 10, $input);
 
         $processor->start();
