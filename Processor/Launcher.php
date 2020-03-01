@@ -27,9 +27,7 @@ class Launcher implements LauncherInterface
 
     protected $output;
     protected $errorOutput;
-    protected $realOutput;
-    protected $realTimeType;
-    protected $realTimeOutput;
+    protected $lastResult;
 
     protected $startTime;
     protected $showOutput = false;
@@ -56,10 +54,9 @@ class Launcher implements LauncherInterface
         $this->startTime = \microtime(true);
 
         $this->process->start(function ($type, $buffer) {
-            $this->realTimeType = $type;
-            $this->realTimeOutput .= $buffer;
+            $this->lastResult = $buffer;
             $this->display($buffer);
-            $this->triggerProgress($buffer);
+            $this->triggerProgress($type, $buffer);
         });
 
         $this->pid = $this->process->getPid();
@@ -185,53 +182,33 @@ class Launcher implements LauncherInterface
                 : $output;
     }
 
+    protected function decode($output, $errorSet = false)
+    {
+        $realOutput = @\unserialize(\base64_decode((string) $output));
+        if (!$realOutput) {
+            $realOutput = $output;
+            if ($errorSet) {
+                $this->errorOutput = $realOutput;
+            }
+        }
+
+        return $realOutput;
+    }
+
     public function getOutput()
     {
         if (!$this->output) {
             $processOutput = $this->process->getOutput();
-
-            $this->output = @\unserialize(\base64_decode((string) $processOutput));
-
-            if (!$this->output) {
-                $this->errorOutput = $this->cleanUp($processOutput);
-            }
-
-            $this->output = $this->cleanUp($this->output);
+            $this->output = $this->cleanUp($this->decode($processOutput, true));
         }
 
         return $this->output;
     }
 
-    public function getRealOutput()
-    {
-        if (!$this->realOutput) {
-            $processOutput = $this->realTimeOutput;
-
-            $this->realTimeOutput = null;
-            $this->realOutput = @\unserialize(\base64_decode((string) $processOutput));
-            if (!$this->realOutput) {
-                $this->realOutput = $this->cleanUp($processOutput);
-            } else {
-                $this->realOutput = $this->cleanUp($this->realOutput);
-            }
-        }
-
-        return $this->realOutput;
-    }
-
     protected function realTime($buffer = null)
     {
         if (!empty($buffer)) {
-            $processOutput = $buffer;
-            $realOutput = @\unserialize(\base64_decode($processOutput));
-            if (!$realOutput) {
-                $realOutput = $processOutput;
-            }
-
-            $realOutput = $this->cleanUp($realOutput);
-            $this->realOutput = null;
-
-            return $realOutput;
+            return $this->cleanUp($this->decode($buffer));
         }
     }
 
@@ -240,14 +217,16 @@ class Launcher implements LauncherInterface
         if (!$this->errorOutput) {
             $processOutput = $this->process->getErrorOutput();
 
-            $this->errorOutput = @\unserialize(\base64_decode((string) $processOutput));
-
-            if (!$this->errorOutput) {
-                $this->errorOutput = $processOutput;
-            }
+            $this->errorOutput = $this->decode($processOutput);
         }
 
         return $this->errorOutput;
+    }
+
+    public function getResult()
+    {
+        $this->lastResult = $this->cleanUp($this->decode($this->lastResult));
+        return $this->lastResult;
     }
 
     public function getProcess(): Process
@@ -311,28 +290,24 @@ class Launcher implements LauncherInterface
     /**
      * Call the progressCallbacks on the process output in real time.
      */
-    public function triggerProgress($buffer)
+    public function triggerProgress(string $type, string $buffer)
     {
         if (\count($this->progressCallbacks) > 0) {
-            $liveType = $this->realTimeType;
             $liveOutput = $this->realTime($buffer);
             foreach ($this->progressCallbacks as $progressCallback) {
-                $progressCallback($liveType, $liveOutput);
-                $this->realOutput = null;
+                $progressCallback($type, $liveOutput);
             }
         }
     }
 
     public function triggerSuccess()
     {
-        if ($this->getRealOutput() && !$this->getErrorOutput()) {
-            $output = $this->realOutput;
-            $this->output = $output;
+        if ($this->getResult() && !$this->getErrorOutput()) {
+            $output = $this->lastResult;
         } elseif ($this->getErrorOutput()) {
             return $this->triggerError();
         } else {
             $output = $this->getOutput();
-            $output = !empty($this->output) ? $output : $this->getRealOutput();
         }
 
         foreach ($this->successCallbacks as $callback)
@@ -361,11 +336,12 @@ class Launcher implements LauncherInterface
 
     public function yieldSuccess()
     {
-        if ($this->getErrorOutput()) {
+        if ($this->getResult() && !$this->getErrorOutput()) {
+            $output = $this->lastResult;
+        } elseif ($this->getErrorOutput()) {
             return $this->yieldError();
         } else {
             $output = $this->getOutput();
-            $output = empty($this->output) ? $this->getRealOutput() : $output;
         }
 
         foreach ($this->successCallbacks as $callback) {

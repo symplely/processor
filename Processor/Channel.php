@@ -27,10 +27,16 @@ class Channel implements ChannelInterface
      * @var Object
      */
     protected $channel = null;
+    protected $ipcInput = \STDIN;
+    protected $ipcOutput = \STDOUT;
+    protected $ipcError = \STDERR;
 
-    public function setup(Object $handle): ChannelInterface
+    public function setup(Object $handle, $input = \STDIN, $output = \STDOUT, $error = \STDERR): ChannelInterface
     {
         $this->channel = $handle;
+        $this->ipcInput = $input;
+        $this->ipcOutput = $output;
+        $this->ipcError = $error;
 
         return $this;
     }
@@ -71,7 +77,7 @@ class Channel implements ChannelInterface
 
     public function receive()
     {
-        return $this->channel->getOutput();
+        return $this->channel->getResult();
     }
 
     /**
@@ -80,9 +86,9 @@ class Channel implements ChannelInterface
     public function read(int $length = 0): string
     {
         if ($length === 0)
-            return \trim(\fgets(\STDIN));
+            return \trim(\fgets($this->ipcInput));
 
-        return \fread(\STDIN, $length);
+        return \fread($this->ipcInput, $length);
     }
 
     /**
@@ -90,7 +96,7 @@ class Channel implements ChannelInterface
      */
     public function write($message): int
     {
-        return \fwrite(\STDOUT, (string) $message);
+        return \fwrite($this->ipcOutput, (string) $message);
     }
 
     /**
@@ -98,7 +104,7 @@ class Channel implements ChannelInterface
      */
     public function error($message): int
     {
-        return \fwrite(\STDERR, (string) $message);
+        return \fwrite($this->ipcError, (string) $message);
     }
 
     /**

@@ -45,7 +45,7 @@ class ErrorHandlingTest extends TestCase
         spawn_run($process);
         $this->assertTrue($process->isSuccessful());
         $this->assertEquals('test', $process->getErrorOutput());
-        $this->assertNull($process->getOutput());
+        $this->assertEquals('', $process->getOutput());
     }
 
     public function testIt_throws_the_exception_if_no_catch_callback()

@@ -13,10 +13,18 @@ namespace Async\Processor;
 interface ChannelInterface extends \IteratorAggregate
 {
     /**
-     * Setup the channel to be used.
-     * Use by `receive()`
+     * Setup the channels to be used.
+     * @param Object $handle Use by `receive()`
+     * @param resource|mixed $input
+     * @param resource|mixed $output
+     * @param resource|mixed $error
      */
-    public function setup(Object $handle): ChannelInterface;
+    public function setup(
+        Object $handle,
+        $input = \STDIN,
+        $output = \STDOUT,
+        $error = \STDERR
+    ): ChannelInterface;
 
     /**
      * Sets a callback that is called when the channel write buffer becomes drained.
@@ -43,7 +51,7 @@ interface ChannelInterface extends \IteratorAggregate
     public function send($message): ChannelInterface;
 
     /**
-     * Receive a message from the IPC channel.
+     * Receive the last message from the IPC channel.
      */
     public function receive();
 

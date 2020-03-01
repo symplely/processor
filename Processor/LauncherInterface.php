@@ -114,6 +114,13 @@ interface LauncherInterface
     public function cleanUp($output = null);
 
     /**
+     * Return the last/final output `piece` of the process.
+     *
+     * @return mixed
+     */
+    public function getResult();
+
+    /**
      * Returns the current output of the process (STDOUT).
      *
      * @return string The process output

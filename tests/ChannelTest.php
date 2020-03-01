@@ -31,7 +31,8 @@ class ChannelTest extends TestCase
 
         $ipc->setup($process);
         \spawn_run($process);
-        $this->assertSame('pingpangpong', $ipc->receive());
+        $this->assertSame('pingpangpong', $process->getOutput());
+        $this->assertSame('pong', $ipc->receive());
     }
 
     public function testSimpleChannelError()
@@ -116,7 +117,7 @@ class ChannelTest extends TestCase
             echo 123;
             echo fread(STDIN, 1);
             echo 456;
-        }, 10, $input)
+        }, 60, $input)
             ->progress(function ($type, $data) use ($input) {
                 if ('123' === $data) {
                     $input->close();
@@ -211,5 +212,24 @@ class ChannelTest extends TestCase
             [$process::OUT, '123'],
         ];
         $this->assertSame($expectedOutput, $output);
+    }
+
+    public function testLiveStreamAsInput()
+    {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'hello');
+        rewind($stream);
+        $p = spawn(function (ChannelInterface $ipc) {
+            $ipc->passthru();
+        }, 10, $stream)
+        ->progress(function ($type, $data) use ($stream) {
+            if ('hello' === $data) {
+                fclose($stream);
+            }
+        });
+
+        $p->run();
+
+        $this->assertSame('hello', $p->getOutput());
     }
 }
