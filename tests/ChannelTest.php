@@ -17,6 +17,8 @@ class ChannelTest extends TestCase
             \usleep(1000);
             echo $channel->read();
             echo $channel->read();
+            \usleep(1000);
+            return 9;
         }, 10, $ipc)
             ->progress(
                 function ($type, $data) use ($ipc) {
@@ -31,8 +33,8 @@ class ChannelTest extends TestCase
 
         $ipc->setup($process);
         \spawn_run($process);
-        $this->assertSame('pingpangpong', $process->getOutput());
-        $this->assertSame('pong', $ipc->receive());
+        $this->assertSame('pingpangpong9', $process->getOutput());
+        $this->assertSame(9, $ipc->receive());
     }
 
     public function testSimpleChannelError()

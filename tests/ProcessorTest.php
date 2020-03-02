@@ -143,7 +143,7 @@ class ProcessorTest extends TestCase
             }
         );
         $p->run();
-        //$this->assertSame('hello child', $p->getOutput());
+        $this->assertSame('hello child3', $p->getOutput());
         $this->assertSame(3, $p->getResult());
     }
 

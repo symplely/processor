@@ -27,6 +27,7 @@ class Launcher implements LauncherInterface
 
     protected $output;
     protected $errorOutput;
+    protected $rawLastResult;
     protected $lastResult;
 
     protected $startTime;
@@ -200,6 +201,13 @@ class Launcher implements LauncherInterface
         if (!$this->output) {
             $processOutput = $this->process->getOutput();
             $this->output = $this->cleanUp($this->decode($processOutput, true));
+
+            $cleaned = $this->output;
+            $replaceWith = $this->getResult();
+            if (\strpos((string) $cleaned, $this->rawLastResult) !== false) {
+                $this->output = \str_replace($this->rawLastResult, $replaceWith, $cleaned);
+            }
+
         }
 
         return $this->output;
@@ -225,7 +233,11 @@ class Launcher implements LauncherInterface
 
     public function getResult()
     {
-        $this->lastResult = $this->cleanUp($this->decode($this->lastResult));
+        if (!$this->rawLastResult) {
+            $this->rawLastResult = $this->lastResult;
+        }
+
+        $this->lastResult = $this->cleanUp($this->decode($this->rawLastResult));
         return $this->lastResult;
     }
 

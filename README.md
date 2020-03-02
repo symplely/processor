@@ -57,8 +57,11 @@ $ipc = new Channel();
 
 $process = spawn(function (ChannelInterface $channel) {
     $channel->write('ping'); // same as echo 'ping' or echo fwrite(STDOUT, 'ping')
+    usleep(1000);
     echo $channel->read(); // same as echo fgets(STDIN);
     echo $channel->read();
+    usleep(1000);
+    return 'return whatever';
     }, 300, $ipc)
         ->progress(function ($type, $data) use ($ipc) {
             if ('ping' === $data) {
@@ -72,9 +75,9 @@ $process = spawn(function (ChannelInterface $channel) {
 $ipc->setup($process)
 \spawn_run($process);
 
-echo \spawn_output($process); // pingpangpong
+echo \spawn_output($process); // pingpangpongreturn whatever
 // Or
-echo $ipc->receive(); // pingpangpong
+echo $ipc->receive(); // return whatever
 ```
 
 ## Event hooks
