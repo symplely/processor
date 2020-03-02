@@ -131,6 +131,22 @@ class ProcessorTest extends TestCase
         $process->displayOn()->run();
     }
 
+    public function testGetResult()
+    {
+        $p = Processor::create(
+            function () {
+                echo 'hello ';
+                usleep(1);
+                echo 'child';
+                usleep(100);
+                return 3;
+            }
+        );
+        $p->run();
+        //$this->assertSame('hello child', $p->getOutput());
+        $this->assertSame(3, $p->getResult());
+    }
+
     public function testGetOutputShell()
     {
         if ('\\' === \DIRECTORY_SEPARATOR) {
