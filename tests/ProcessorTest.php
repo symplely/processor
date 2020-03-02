@@ -136,9 +136,9 @@ class ProcessorTest extends TestCase
         $p = Processor::create(
             function () {
                 echo 'hello ';
-                usleep(1);
+                usleep(10000);
                 echo 'child';
-                usleep(100);
+                usleep(10000);
                 return 3;
             }
         );
