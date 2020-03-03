@@ -204,7 +204,7 @@ class Launcher implements LauncherInterface
 
             $cleaned = $this->output;
             $replaceWith = $this->getResult();
-            if (\strpos((string) $cleaned, $this->rawLastResult) !== false) {
+            if (\is_string($cleaned) && \strpos($cleaned, $this->rawLastResult) !== false) {
                 $this->output = \str_replace($this->rawLastResult, $replaceWith, $cleaned);
             }
 
